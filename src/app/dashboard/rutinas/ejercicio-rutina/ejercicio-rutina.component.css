@@ -1,0 +1,28 @@
+/* Estilos para el contenedor de video responsivo */
+.video-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 15px auto;
+  width: 60%; /* Tamaño por defecto para escritorio */
+}
+
+.video-container iframe {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border: none;
+}
+
+/* Estilos responsivos para tablets */
+@media (max-width: 992px) {
+  .video-container {
+    width: 80%; /* Tamaño para tablets */
+  }
+}
+
+/* Estilos responsivos para móviles */
+@media (max-width: 576px) {
+  .video-container {
+    width: 100%; /* Tamaño para móviles */
+  }
+}

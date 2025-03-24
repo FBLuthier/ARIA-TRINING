@@ -1,0 +1,143 @@
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">Gestión de Rutinas</h5>
+          <button class="btn btn-light" (click)="crearNuevaRutina()">
+            <i class="bi bi-plus-circle me-2"></i>Crear Rutina
+          </button>
+        </div>
+        <div class="card-body">
+          <!-- Filtros y búsqueda -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="input-group">
+                <span class="input-group-text bg-light">
+                  <i class="bi bi-person"></i>
+                </span>
+                <select class="form-select" [(ngModel)]="usuarioIdSeleccionado" (change)="seleccionarUsuario()">
+                  <option [ngValue]="null">Seleccione un usuario...</option>
+                  <option *ngFor="let usuario of usuarios" [ngValue]="usuario.id">
+                    {{ usuario.primerNombre }} {{ usuario.primerApellido }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6 text-end">
+              <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary" (click)="mostrarRutinasActivas()">
+                  <i class="bi bi-check-circle me-1"></i>Activas
+                </button>
+                <button type="button" class="btn btn-outline-secondary" (click)="mostrarRutinasArchivadas()">
+                  <i class="bi bi-archive me-1"></i>Archivadas
+                </button>
+                <button type="button" class="btn btn-outline-success">
+                  <i class="bi bi-file-earmark-excel me-1"></i>Exportar
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Spinner de carga -->
+          <div *ngIf="cargando" class="d-flex justify-content-center my-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+          </div>
+          
+          <!-- Mensaje de error -->
+          <div *ngIf="error" class="alert alert-danger">
+            {{ error }}
+          </div>
+          
+          <!-- Mensaje cuando no hay usuario seleccionado -->
+          <div *ngIf="!cargando && !error && !usuarioIdSeleccionado" class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>Seleccione un usuario para ver sus rutinas.
+          </div>
+          
+          <!-- Tabla de rutinas -->
+          <div *ngIf="!cargando && !error && usuarioIdSeleccionado && rutinas.length > 0" class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Usuario</th>
+                  <th scope="col" class="text-center">Días</th>
+                  <th scope="col" class="text-center">Creación</th>
+                  <th scope="col" class="text-center">Estado</th>
+                  <th scope="col" class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let rutina of rutinas; let i = index">
+                  <td>{{ obtenerNombreUsuario(rutina.usuarioId) }}</td>
+                  <td class="text-center">{{ rutina.dias.length }}</td>
+                  <td class="text-center">{{ rutina.fechaCreacion | date:'dd/MM/yyyy' }}</td>
+                  <td class="text-center">
+                    <span class="badge" [ngClass]="rutina.activa ? 'bg-success' : 'bg-secondary'">
+                      {{ rutina.activa ? 'Activa' : 'Archivada' }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <div class="btn-group btn-group-sm">
+                      <button 
+                        class="btn btn-sm btn-primary" 
+                        title="Ver rutina"
+                        (click)="verRutina(rutina)">
+                        <i class="bi bi-eye-fill"></i>
+                      </button>
+                      <button 
+                        *ngIf="rutina.activa"
+                        class="btn btn-sm btn-outline-primary" 
+                        title="Editar rutina"
+                        (click)="editarRutina(rutina)">
+                        <i class="bi bi-pencil-fill"></i>
+                      </button>
+                      <button 
+                        *ngIf="rutina.activa"
+                        class="btn btn-sm btn-outline-warning" 
+                        title="Archivar rutina"
+                        (click)="archivarRutina(rutina)">
+                        <i class="bi bi-archive-fill"></i>
+                      </button>
+                      <button 
+                        class="btn btn-sm btn-outline-danger" 
+                        title="Eliminar rutina"
+                        (click)="eliminarRutina(rutina)">
+                        <i class="bi bi-trash-fill"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Mensaje cuando no hay rutinas para el usuario seleccionado -->
+          <div *ngIf="!cargando && !error && usuarioIdSeleccionado && rutinas.length === 0" class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>No se encontraron rutinas para este usuario. Haga clic en "Crear Rutina" para añadir una nueva.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Componentes para crear/editar/ver rutinas -->
+<app-crear-rutinas 
+  *ngIf="mostrarCrearRutina"
+  [usuarioId]="usuarioSeleccionado?.id || 0"
+  [usuario]="usuarioSeleccionado"
+  [rutina]="rutinaSeleccionada"
+  [modoEdicion]="modoEdicion"
+  (rutinaGuardada)="onRutinaGuardada($event)"
+  (cancelar)="cerrarModalCrearRutina()">
+</app-crear-rutinas>
+
+<app-ver-rutina
+  *ngIf="mostrarVerRutina"
+  [rutinaId]="rutinaSeleccionada?.id || 0"
+  [modoEdicion]="true"
+  (editar)="editarRutina($event)"
+  (cerrar)="cerrarModalVerRutina()">
+</app-ver-rutina>

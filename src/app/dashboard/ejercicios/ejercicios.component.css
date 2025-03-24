@@ -1,0 +1,192 @@
+/* Estilos para la tabla de ejercicios */
+.table th, .table td {
+  vertical-align: middle;
+}
+
+/* Estilos para el contenedor de video */
+.video-container {
+  width: 60%;
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  animation: fadeIn 0.5s ease-in-out;
+  transition: all 0.3s ease;
+}
+
+/* Media queries para diseño responsivo */
+@media (max-width: 992px) {
+  .video-container {
+    width: 80%;
+  }
+}
+
+@media (max-width: 576px) {
+  .video-container {
+    width: 100%;
+  }
+}
+
+/* Estilos para el wrapper del video en la tabla */
+.video-wrapper {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Estilos para el fondo del video */
+.video-background {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Estilos para el ratio del video */
+.ratio-16x9 {
+  min-height: 315px;
+  width: 100%;
+}
+
+/* Estilos para el botón de cerrar video */
+.btn-close-video {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  background-color: #dc3545;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  transition: all 0.2s ease;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: white;
+}
+
+.btn-close-video:hover {
+  background-color: #c82333;
+  transform: scale(1.1);
+}
+
+.btn-close-video i {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+/* Estilos para el botón de video */
+.video-btn {
+  transition: all 0.3s ease;
+  border-radius: 20px;
+  padding: 0.25rem 0.75rem;
+}
+
+.video-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.video-btn i {
+  font-size: 0.9rem;
+}
+
+/* Estilos para el marco del video */
+.video-frame {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Estilos para el acordeón */
+.accordion-button:not(.collapsed) {
+  background-color: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+  border-color: rgba(13, 110, 253, 0.25);
+}
+
+/* Animación para expandir/colapsar el acordeón */
+.accordion-collapse {
+  transition: all 0.3s ease-in-out;
+}
+
+.accordion-button {
+  position: relative;
+  padding: 1rem 2.5rem 1rem 1.25rem;
+}
+
+.accordion-button::after {
+  margin-left: 0;
+  position: absolute;
+  right: 1.25rem;
+}
+
+.accordion-item {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.accordion-body {
+  padding: 1.25rem;
+  background-color: #fff;
+  color: #495057;
+}
+
+.badge {
+  font-weight: 500;
+  font-size: 0.85em;
+}
+
+.table th {
+  font-weight: 600;
+  color: #495057;
+}
+
+.btn-group-sm > .btn {
+  padding: 0.25rem 0.5rem;
+}
+
+/* Estilos para los botones de video */
+.btn-sm.btn-primary {
+  transition: all 0.3s ease;
+}
+
+.btn-sm.btn-primary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Icono de reproducción */
+.bi-play-circle-fill {
+  font-size: 1.1rem;
+  vertical-align: middle;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

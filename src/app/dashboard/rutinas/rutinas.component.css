@@ -1,0 +1,127 @@
+/* Estilos para la tabla de rutinas */
+.table-rutinas {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-rutinas th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  text-align: left;
+  padding: 10px;
+}
+
+.table-rutinas td {
+  padding: 10px;
+  vertical-align: middle;
+}
+
+.table-rutinas tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Estilos para los botones de acción */
+.btn-action {
+  margin-right: 5px;
+}
+
+/* Estilos para los estados de rutina */
+.badge-activa {
+  background-color: #28a745;
+  color: white;
+}
+
+.badge-archivada {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Estilos para los mensajes de estado */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.error-message {
+  color: #dc3545;
+  margin: 15px 0;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .table-responsive {
+    overflow-x: auto;
+  }
+  
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Estilos para los modales */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.modal-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Estilos adicionales */
+.table-responsive {
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.table th {
+  font-weight: 600;
+  background-color: #f8f9fa;
+}
+
+.btn-group-sm .btn {
+  margin: 0 2px;
+}
+
+.input-group .form-select {
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+  border-right: none;
+}
+
+/* Estilos para dispositivos móviles */
+@media (max-width: 767.98px) {
+  .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+  
+  .btn-group .btn {
+    margin-bottom: 0.5rem;
+  }
+}

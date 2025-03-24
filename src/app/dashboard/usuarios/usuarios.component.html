@@ -1,0 +1,345 @@
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">Gestión de Usuarios</h5>
+          <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#crearUsuarioModal" (click)="abrirModalCrearUsuario()">
+            <i class="bi bi-plus-circle me-2"></i>Crear Usuario
+          </button>
+        </div>
+        <div class="card-body">
+          <!-- Filtros y búsqueda -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="input-group">
+                <span class="input-group-text bg-light">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control" placeholder="Buscar usuario..." [(ngModel)]="terminoBusqueda">
+                <button class="btn btn-outline-secondary" type="button" (click)="buscarUsuarios()">Buscar</button>
+              </div>
+            </div>
+            <div class="col-md-6 text-end">
+              <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary">
+                  <i class="bi bi-filter me-1"></i>Filtrar
+                </button>
+                <button type="button" class="btn btn-outline-success">
+                  <i class="bi bi-file-earmark-excel me-1"></i>Exportar
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Tabla de usuarios -->
+          <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" class="text-center">ID</th>
+                  <th scope="col">Nombre</th>
+                  <th scope="col" class="text-center">Detalles</th>
+                  <th scope="col" class="text-center">Documentos</th>
+                  <th scope="col" class="text-center">Rutina</th>
+                  <th scope="col" class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Filas dinámicas de usuarios -->
+                <tr *ngFor="let usuario of usuarios">
+                  <td class="text-center">{{ usuario.id }}</td>
+                  <td>{{ usuario.primerNombre }} {{ usuario.segundoNombre }} {{ usuario.primerApellido }} {{ usuario.segundoApellido }}</td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-info" (click)="toggleDetallesUsuario(usuario)">
+                      <i class="bi bi-info-circle me-1"></i> Detalles
+                    </button>
+                  </td>
+                  <td class="text-center">
+                    <div class="dropdown">
+                      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-file-earmark me-1"></i> Documentos
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li *ngIf="usuario.documentos?.contrato">
+                          <button class="dropdown-item" (click)="abrirDocumento(usuario.documentos.contrato)">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>Contrato
+                          </button>
+                        </li>
+                        <li *ngIf="usuario.documentos?.consentimiento">
+                          <button class="dropdown-item" (click)="abrirDocumento(usuario.documentos.consentimiento)">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>Consentimiento
+                          </button>
+                        </li>
+                        <li *ngIf="usuario.documentos?.motivacion">
+                          <button class="dropdown-item" (click)="abrirDocumento(usuario.documentos.motivacion)">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>Motivación
+                          </button>
+                        </li>
+                        <li *ngIf="usuario.documentos?.evaluacion">
+                          <button class="dropdown-item" (click)="abrirDocumento(usuario.documentos.evaluacion)">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>Evaluación
+                          </button>
+                        </li>
+                        <li *ngIf="usuario.documentos?.otros">
+                          <button class="dropdown-item" (click)="abrirDocumento(usuario.documentos.otros)">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>Otros
+                          </button>
+                        </li>
+                        <li *ngIf="!usuario.documentos?.contrato && !usuario.documentos?.consentimiento && !usuario.documentos?.motivacion && !usuario.documentos?.evaluacion && !usuario.documentos?.otros">
+                          <span class="dropdown-item text-muted">No hay documentos</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <div class="btn-group btn-group-sm">
+                      <button 
+                        class="btn btn-sm btn-outline-info" 
+                        title="Ver rutina"
+                        [disabled]="!usuario.tieneRutina"
+                        (click)="verRutina(usuario)">
+                        <i class="bi bi-eye-fill me-1"></i> Ver
+                      </button>
+                      <button 
+                        class="btn btn-sm btn-outline-success" 
+                        title="Crear rutina"
+                        [disabled]="usuario.tieneRutina"
+                        (click)="crearRutina(usuario)">
+                        <i class="bi bi-plus-circle-fill me-1"></i> Crear
+                      </button>
+                      <button 
+                        class="btn btn-sm btn-outline-primary" 
+                        title="Editar rutina"
+                        [disabled]="!usuario.tieneRutina"
+                        (click)="editarRutina(usuario)">
+                        <i class="bi bi-pencil-fill me-1"></i> Editar
+                      </button>
+                      <button 
+                        class="btn btn-sm btn-outline-secondary" 
+                        title="Archivar rutina"
+                        [disabled]="!usuario.tieneRutina"
+                        (click)="archivarRutina(usuario)">
+                        <i class="bi bi-archive-fill me-1"></i> Archivar
+                      </button>
+                      <button 
+                        class="btn btn-sm btn-outline-dark" 
+                        title="Historial de rutinas"
+                        [disabled]="!usuario.tieneHistorialRutinas"
+                        (click)="verHistorialRutinas(usuario)">
+                        <i class="bi bi-clock-history me-1"></i> Historial
+                      </button>
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <div class="btn-group btn-group-sm">
+                      <button 
+                        class="btn btn-sm btn-outline-primary" 
+                        title="Editar usuario"
+                        (click)="editarUsuario(usuario)">
+                        <i class="bi bi-pencil-fill me-1"></i> Editar
+                      </button>
+                      <button 
+                        class="btn btn-sm btn-outline-danger" 
+                        title="Eliminar usuario"
+                        (click)="confirmarEliminarUsuario(usuario)">
+                        <i class="bi bi-trash-fill me-1"></i> Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                
+                <!-- Fila de detalles expandible -->
+                <tr *ngFor="let usuario of usuarios" [hidden]="!esDetalleVisible(usuario.id)" class="bg-light details-row">
+                  <td colspan="6">
+                    <div class="card border-0 shadow-sm mb-0 details-card">
+                      <div class="card-body py-3">
+                        <div class="row">
+                          <div class="col-md-6 details-section">
+                            <h6 class="mb-3 text-primary">Información de contacto</h6>
+                            <p><strong>Teléfono:</strong> {{ usuario.telefono || 'No disponible' }}</p>
+                            <p><strong>Email:</strong> {{ usuario.email || 'No disponible' }}</p>
+                            <p><strong>Fecha de nacimiento:</strong> {{ usuario.dob ? (usuario.dob | date:'dd/MM/yyyy') : 'No disponible' }}</p>
+                          </div>
+                          <div class="col-md-6 details-section">
+                            <h6 class="mb-3 text-primary">Información deportiva</h6>
+                            <p><strong>Programa:</strong> {{ usuario.programa || 'No disponible' }}</p>
+                            <p><strong>Deporte:</strong> {{ usuario.deporte || 'No disponible' }}</p>
+                            <p><strong>Posición:</strong> {{ usuario.posicion || 'No disponible' }}</p>
+                            <p><strong>Lesiones:</strong> {{ usuario.lesiones || 'Ninguna' }}</p>
+                          </div>
+                        </div>
+                        <div class="text-end mt-3">
+                          <button class="btn btn-sm btn-outline-secondary" (click)="toggleDetallesUsuario(usuario)">
+                            <i class="bi bi-x-circle me-1"></i> Cerrar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                
+                <!-- Mensaje cuando no hay usuarios -->
+                <tr *ngIf="usuarios.length === 0">
+                  <td colspan="6" class="text-center py-4">
+                    <div class="alert alert-info mb-0">
+                      <i class="bi bi-info-circle me-2"></i>No se encontraron usuarios
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Paginación -->
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+              <span class="text-muted">Mostrando {{ (paginaActual - 1) * resultadosPorPagina + 1 }}-{{ paginaActual * resultadosPorPagina > totalUsuarios ? totalUsuarios : paginaActual * resultadosPorPagina }} de {{ totalUsuarios }} resultados</span>
+            </div>
+            <nav aria-label="Page navigation">
+              <ul class="pagination mb-0">
+                <li class="page-item" [class.disabled]="paginaActual === 1">
+                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(paginaActual - 1)" [attr.aria-disabled]="paginaActual === 1">
+                    <i class="bi bi-chevron-left"></i>
+                  </a>
+                </li>
+                <li class="page-item" *ngFor="let pagina of [1, 2, 3]" [class.active]="pagina === paginaActual">
+                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(pagina)">{{ pagina }}</a>
+                </li>
+                <li class="page-item" [class.disabled]="paginaActual === Math.ceil(totalUsuarios / resultadosPorPagina)">
+                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(paginaActual + 1)">
+                    <i class="bi bi-chevron-right"></i>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal para Crear/Editar Usuario -->
+  <div class="modal fade" id="crearUsuarioModal" tabindex="-1" aria-labelledby="crearUsuarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="modal-title" id="crearUsuarioModalLabel">{{usuarioEditando ? 'Editar Usuario' : 'Crear Nuevo Usuario'}}</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="cerrarModalCrearUsuario()" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <app-crear-usuarios 
+            (usuarioCreado)="agregarUsuario($event)" 
+            (usuarioEditado)="onUsuarioEditado($event)"
+            #crearUsuariosComponent></app-crear-usuarios>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal para Crear Rutina -->
+  <div class="modal fade" id="crearRutinaModal" tabindex="-1" aria-labelledby="crearRutinaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title" id="crearRutinaModalLabel">Crear Nueva Rutina</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted">Este modal será gestionado por el componente crear-rutinas</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-info">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal para Editar Rutina -->
+  <div class="modal fade" id="editarRutinaModal" tabindex="-1" aria-labelledby="editarRutinaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title" id="editarRutinaModalLabel">Editar Rutina</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted">Este modal será gestionado por el componente editar-rutinas</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-warning">Guardar Cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para ver rutina -->
+  <div *ngIf="mostrarModalVerRutina" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h5 class="modal-title">Ver Rutina</h5>
+        <button type="button" class="btn-close" (click)="cerrarModalVerRutina()"></button>
+      </div>
+      <div class="modal-body">
+        <app-ver-rutina 
+          [usuarioId]="usuarioSeleccionado?.id || 0" 
+          [rutinaId]="rutinaSeleccionadaId || 0" 
+          [modoEdicion]="false"
+          (cerrar)="cerrarModalVerRutina()">
+        </app-ver-rutina>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para crear rutina -->
+  <div *ngIf="mostrarModalCrearRutina" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h5 class="modal-title">Crear Rutina para {{ usuarioSeleccionado?.primerNombre }} {{ usuarioSeleccionado?.primerApellido }}</h5>
+        <button type="button" class="btn-close" (click)="cerrarModalCrearRutina()"></button>
+      </div>
+      <div class="modal-body">
+        <app-crear-rutinas 
+          [usuarioId]="usuarioSeleccionado?.id"
+          (cerrar)="cerrarModalCrearRutina()">
+        </app-crear-rutinas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para editar rutina -->
+  <div *ngIf="mostrarModalEditarRutina" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar Rutina de {{ usuarioSeleccionado?.primerNombre }} {{ usuarioSeleccionado?.primerApellido }}</h5>
+        <button type="button" class="btn-close" (click)="cerrarModalEditarRutina()"></button>
+      </div>
+      <div class="modal-body">
+        <app-ver-rutina 
+          [usuarioId]="usuarioSeleccionado?.id || 0" 
+          [rutinaId]="rutinaSeleccionadaId || 0" 
+          [modoEdicion]="true"
+          (cerrar)="cerrarModalEditarRutina()">
+        </app-ver-rutina>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para historial de rutinas -->
+  <div *ngIf="mostrarModalHistorialRutinas" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h5 class="modal-title">Historial de Rutinas de {{ usuarioSeleccionado?.primerNombre }} {{ usuarioSeleccionado?.primerApellido }}</h5>
+        <button type="button" class="btn-close" (click)="cerrarModalHistorialRutinas()"></button>
+      </div>
+      <div class="modal-body">
+        <app-historial-rutinas 
+          [usuarioId]="usuarioSeleccionado?.id"
+          (cerrar)="cerrarModalHistorialRutinas()">
+        </app-historial-rutinas>
+      </div>
+    </div>
+  </div>
+</div>

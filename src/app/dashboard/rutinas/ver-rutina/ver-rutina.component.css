@@ -1,0 +1,31 @@
+/* Estilos para el contenedor de video responsivo */
+.video-container {
+  width: 60%; /* Tamaño por defecto para escritorio */
+  margin: 0 auto;
+}
+
+.video-container video {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border: none;
+  background-color: #000;
+}
+
+/* Estilos responsivos para tablets */
+@media (max-width: 992px) {
+  .video-container {
+    width: 80%; /* Tamaño para tablets */
+  }
+}
+
+/* Estilos responsivos para móviles */
+@media (max-width: 576px) {
+  .video-container {
+    width: 100%; /* Tamaño para móviles */
+  }
+}
+
+/* Estilos para los botones de control de video */
+.btn-sm {
+  margin-right: 5px;
+}

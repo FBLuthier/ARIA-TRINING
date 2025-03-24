@@ -1,0 +1,98 @@
+.btn-outline-primary:hover {
+  color: #fff;
+}
+
+.form-label {
+  margin-bottom: 0.5rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+.alert-info {
+  background-color: #e7f5ff;
+  border-color: #b8daff;
+}
+
+.modal-header {
+  border-bottom: 0;
+}
+
+.modal-footer {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.btn-group {
+  flex-wrap: wrap;
+}
+
+.btn {
+  margin-bottom: 0.25rem;
+}
+
+.invalid-feedback {
+  font-size: 80%;
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #dc3545;
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+}
+
+/* Estilos para los botones de fase */
+.btn-fase {
+  transition: all 0.2s ease;
+}
+
+.btn-fase:hover {
+  transform: translateY(-2px);
+}
+
+/* Animación para la alerta de fase seleccionada */
+.alert-info {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos para el contenedor de video */
+.video-container {
+  width: 60%;
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Media queries para diseño responsivo */
+@media (max-width: 992px) {
+  .video-container {
+    width: 80%;
+  }
+}
+
+@media (max-width: 576px) {
+  .video-container {
+    width: 100%;
+  }
+}
+
+/* Estilos para el ratio del video */
+.ratio-16x9 {
+  min-height: 315px;
+  width: 100%;
+}

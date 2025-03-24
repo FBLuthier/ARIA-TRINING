@@ -1,0 +1,100 @@
+
+/* Estilos para las tarjetas de días */
+.card {
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Estilos para los botones */
+.btn-group-sm .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* Estilos para el contenedor de video según preferencias del usuario */
+.video-container {
+  width: 60%;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Diseño responsivo para el contenedor de video */
+@media (max-width: 992px) {
+  .video-container {
+    width: 80%;
+  }
+}
+
+@media (max-width: 576px) {
+  .video-container {
+    width: 100%;
+  }
+}
+
+/* Estilos para los botones de video */
+.btn-video {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: 0.2rem;
+}
+
+/* Animación para los botones */
+.btn {
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para el día seleccionado */
+.dia-seleccionado {
+  border-left: 4px solid #007bff;
+}
+
+/* Estilos para el acordeón de fases */
+.accordion-button:not(.collapsed) {
+  background-color: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+}
+
+/* Estilos para las tablas */
+.table-responsive {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+/* Estilos para los mensajes de error y éxito */
+.alert-success {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}

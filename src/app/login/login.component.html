@@ -1,0 +1,68 @@
+<div class="d-flex justify-content-center align-items-center vh-100 bg-light">
+  <div class="card shadow p-4" style="width: 25rem;">
+    <h2 class="text-center mb-4" style="color: #ff7dd7;">Iniciar Sesión</h2>
+    <form (ngSubmit)="login()">
+      <!-- Campo de Usuario -->
+      <div class="mb-3">
+        <label for="username" class="form-label">Usuario</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+          <input
+            type="text"
+            class="form-control"
+            id="username"
+            [(ngModel)]="credentials.username"
+            name="username"
+            placeholder="Ingresa tu usuario"
+            required
+          />
+        </div>
+      </div>
+
+      <!-- Campo de Contraseña -->
+      <div class="mb-3">
+        <label for="password" class="form-label">Contraseña</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            [(ngModel)]="credentials.password"
+            name="password"
+            placeholder="Ingresa tu contraseña"
+            required
+          />
+        </div>
+      </div>
+
+      <!-- Mensaje de Error -->
+      <div *ngIf="errorMessage" class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Botón de Inicio de Sesión -->
+      <button
+        type="submit"
+        class="btn w-100"
+        style="background-color: #ff7dd7; color: white;"
+        [disabled]="loading"
+      >
+        <span *ngIf="!loading">
+          <i class="bi bi-box-arrow-in-right me-2"></i>
+          Iniciar Sesión
+        </span>
+        <span *ngIf="loading">
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Iniciando...
+        </span>
+      </button>
+
+      <!-- Enlace para Recuperar Contraseña -->
+      <div class="text-center mt-3">
+        <a href="#" style="color: #dd9eff;">¿Olvidaste tu contraseña?</a>
+      </div>
+    </form>
+  </div>
+</div>

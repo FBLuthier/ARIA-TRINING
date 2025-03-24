@@ -1,0 +1,268 @@
+<div class="container-fluid">
+  <!-- Encabezado de la rutina -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">{{ rutina?.nombre }}</h5>
+          <div>
+            <button 
+              type="button" 
+              class="btn btn-sm btn-light me-2" 
+              (click)="editarRutina()">
+              <i class="bi bi-pencil-fill me-1"></i> Editar
+            </button>
+            <button 
+              *ngIf="rutina?.activa" 
+              type="button" 
+              class="btn btn-sm btn-warning me-2" 
+              (click)="archivarRutina()">
+              <i class="bi bi-archive-fill me-1"></i> Archivar
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-sm btn-secondary" 
+              (click)="cerrarModal()">
+              <i class="bi bi-x-circle me-1"></i> Cerrar
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <p><strong>Fecha de creación:</strong> {{ rutina?.fechaCreacion | date:'dd/MM/yyyy' }}</p>
+              <p><strong>Última modificación:</strong> {{ rutina?.fechaModificacion | date:'dd/MM/yyyy' }}</p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Estado:</strong> 
+                <span class="badge" [ngClass]="rutina?.activa ? 'bg-success' : 'bg-secondary'">
+                  {{ rutina?.activa ? 'Activa' : 'Archivada' }}
+                </span>
+              </p>
+              <p><strong>Días:</strong> {{ rutina?.dias?.length || 0 }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner de carga -->
+  <div *ngIf="cargando" class="d-flex justify-content-center my-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+  </div>
+
+  <!-- Contenido de la rutina -->
+  <div *ngIf="!cargando && !error && rutina">
+    <div class="row">
+      <!-- Navegación de días -->
+      <div class="col-md-3 mb-4">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h6 class="mb-0">Días</h6>
+          </div>
+          <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+              <button 
+                *ngFor="let dia of rutina.dias" 
+                class="list-group-item list-group-item-action" 
+                [class.active]="diaSeleccionado?.id === dia.id" 
+                (click)="seleccionarDia(dia)">
+                {{ dia.nombre }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fases del día seleccionado -->
+      <div class="col-md-9">
+        <div *ngIf="!diaSeleccionado" class="alert alert-info">
+          Selecciona un día para ver sus fases y ejercicios.
+        </div>
+
+        <div *ngIf="diaSeleccionado">
+          <h4 class="mb-3">{{ diaSeleccionado.nombre }}</h4>
+
+          <!-- Acordeón de fases -->
+          <div class="accordion mb-4" id="acordeonFases">
+            <div *ngFor="let fase of diaSeleccionado.fases; let i = index" class="accordion-item">
+              <h2 class="accordion-header" [id]="'heading' + i">
+                <button 
+                  class="accordion-button" 
+                  [class.collapsed]="!esFaseExpandida(fase)" 
+                  type="button" 
+                  (click)="toggleFase(fase)">
+                  <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                    <span>{{ fase.nombre }}</span>
+                    <span class="badge bg-primary rounded-pill">{{ fase.ejercicios.length }} ejercicios</span>
+                  </div>
+                </button>
+              </h2>
+              <div 
+                class="accordion-collapse collapse" 
+                [class.show]="esFaseExpandida(fase)">
+                <div class="accordion-body">
+                  <!-- Indicaciones de la fase -->
+                  <div *ngIf="fase.indicaciones" class="alert alert-info mb-3">
+                    <strong>Indicaciones:</strong> {{ fase.indicaciones }}
+                  </div>
+
+                  <!-- Tabla de ejercicios -->
+                  <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                      <thead class="table-light">
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Ejercicio</th>
+                          <th scope="col" class="text-center">Series</th>
+                          <th scope="col" class="text-center">Reps</th>
+                          <th scope="col" class="text-center">Tempo</th>
+                          <th scope="col" class="text-center">Descanso</th>
+                          <th scope="col" class="text-center">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let ejercicio of fase.ejercicios; let j = index" 
+                            [class.table-active]="esEjercicioSeleccionado(ejercicio)">
+                          <td>{{ j + 1 }}</td>
+                          <td>{{ ejercicio.nombre }}</td>
+                          <td class="text-center">{{ ejercicio.numSeries }}</td>
+                          <td class="text-center">{{ ejercicio.numRepeticiones }}</td>
+                          <td class="text-center">
+                            <span *ngIf="ejercicio.tempo">
+                              {{ ejercicio.tempo.tiempos.join('-') }}
+                            </span>
+                          </td>
+                          <td class="text-center">
+                            <span *ngIf="ejercicio.descanso">
+                              {{ ejercicio.descanso.minutos }}:{{ ejercicio.descanso.segundos < 10 ? '0' + ejercicio.descanso.segundos : ejercicio.descanso.segundos }}
+                            </span>
+                          </td>
+                          <td class="text-center">
+                            <button 
+                              type="button" 
+                              class="btn btn-sm btn-primary"
+                              (click)="seleccionarEjercicio(ejercicio, fase)">
+                              <i class="bi bi-play-circle-fill me-1"></i> Ver
+                            </button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  <!-- Detalle del ejercicio seleccionado (dentro de la fase) -->
+                  <div *ngIf="esEjercicioSeleccionadoDeFase(fase) && ejercicioSeleccionado" class="card mt-4">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                      <h5 class="mb-0">{{ ejercicioSeleccionado.nombre }}</h5>
+                      <button type="button" class="btn btn-sm btn-light" (click)="cerrarDetalleEjercicio()">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                    </div>
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <p><strong>Series:</strong> {{ ejercicioSeleccionado.numSeries }}</p>
+                          <p><strong>Repeticiones:</strong> {{ ejercicioSeleccionado.numRepeticiones }}</p>
+                          <p *ngIf="ejercicioSeleccionado.tempo">
+                            <strong>Tempo:</strong> {{ ejercicioSeleccionado.tempo.tipo }} 
+                            ({{ ejercicioSeleccionado.tempo.tiempos.join('-') }})
+                          </p>
+                          <p *ngIf="ejercicioSeleccionado.descanso">
+                            <strong>Descanso:</strong> 
+                            {{ ejercicioSeleccionado.descanso.minutos }} min 
+                            {{ ejercicioSeleccionado.descanso.segundos }} seg
+                          </p>
+                        </div>
+                        <div class="col-md-6">
+                          <div *ngIf="ejercicioSeleccionado.indicaciones">
+                            <h6>Indicaciones:</h6>
+                            <p>{{ ejercicioSeleccionado.indicaciones }}</p>
+                          </div>
+                          <div *ngIf="ejercicioSeleccionado.correcciones">
+                            <h6>Correcciones:</h6>
+                            <p>{{ ejercicioSeleccionado.correcciones }}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Video del ejercicio si existe -->
+                      <div *ngIf="ejercicioSeleccionado.videoUrl" class="mt-4">
+                        <h6>Video demostrativo:</h6>
+                        <div class="video-container">
+                          <div class="ratio ratio-16x9">
+                            <iframe 
+                              [src]="ejercicioSeleccionado.videoUrl | safe" 
+                              title="Video demostrativo" 
+                              frameborder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowfullscreen></iframe>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Series del ejercicio si existen -->
+                      <div *ngIf="ejercicioSeleccionado.series && ejercicioSeleccionado.series.length > 0" class="mt-4">
+                        <h6>Series:</h6>
+                        <div class="table-responsive">
+                          <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                              <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Serie</th>
+                                <th scope="col">Peso Objetivo</th>
+                                <th scope="col">Completada</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr *ngFor="let serie of ejercicioSeleccionado.series; let k = index">
+                                <td>{{ k + 1 }}</td>
+                                <td>{{ serie.numero || k + 1 }}</td>
+                                <td>{{ serie.pesoObjetivo ? (serie.pesoObjetivo + ' kg') : '-' }}</td>
+                                <td class="text-center">
+                                  <i *ngIf="serie.completada" class="bi bi-check-circle-fill text-success"></i>
+                                  <i *ngIf="!serie.completada" class="bi bi-x-circle text-muted"></i>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Estilos para el contenedor de video responsivo -->
+<style>
+  .video-container {
+    width: 60%;
+  }
+  
+  @media (max-width: 992px) {
+    .video-container {
+      width: 80%;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .video-container {
+      width: 100%;
+    }
+  }
+</style>
