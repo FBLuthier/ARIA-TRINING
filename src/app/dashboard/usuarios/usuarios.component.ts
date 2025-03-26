@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CrearUsuariosComponent } from './crear-usuarios/crear-usuarios.component';
 import { Router } from '@angular/router';
 import { RutinaService } from '../rutinas/services/rutina.service';
 import { VerRutinaComponent } from '../rutinas/ver-rutina/ver-rutina.component';
@@ -16,7 +15,6 @@ declare var bootstrap: any;
   imports: [
     CommonModule, 
     FormsModule, 
-    CrearUsuariosComponent, 
     VerRutinaComponent, 
     CrearRutinasComponent, 
     HistorialRutinasComponent
@@ -25,9 +23,6 @@ declare var bootstrap: any;
   styleUrls: ['./usuarios.component.css']
 })
 export class UsuariosComponent implements OnInit, AfterViewInit {
-  // Referencia al componente hijo
-  @ViewChild('crearUsuariosComponent') crearUsuariosComponent!: CrearUsuariosComponent;
-
   // Propiedad Math para usar en la plantilla
   Math = Math;
   
@@ -115,6 +110,15 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   // Variable para la búsqueda
   terminoBusqueda = '';
 
+  // Variables para filtrado
+  usuariosFiltrados: any[] = [];
+  filtrosActivos: boolean = false;
+  filtros: any = {
+    programa: '',
+    deporte: '',
+    tieneRutina: null
+  };
+
   // Usuario que se está editando actualmente
   usuarioEditando: any = null;
 
@@ -135,7 +139,8 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   constructor(private router: Router, private rutinaService: RutinaService) { }
 
   ngOnInit(): void {
-    // Aquí se cargarían los datos desde el servicio cuando se implemente
+    // Inicializar los usuarios filtrados con todos los usuarios
+    this.usuariosFiltrados = [...this.usuarios];
   }
 
   ngAfterViewInit(): void {
@@ -162,14 +167,84 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
 
   // Método para buscar usuarios
   buscarUsuarios(): void {
-    console.log('Buscando usuarios con término:', this.terminoBusqueda);
-    // Aquí iría la lógica de búsqueda cuando se conecte con la base de datos
+    // Reiniciar la página actual al buscar
+    this.paginaActual = 1;
+    
+    // Si no hay término de búsqueda y no hay filtros activos, mostrar todos los usuarios
+    if (!this.terminoBusqueda.trim() && !this.filtrosActivos) {
+      this.usuariosFiltrados = [...this.usuarios];
+      return;
+    }
+    
+    // Filtrar usuarios según el término de búsqueda
+    let resultados = [...this.usuarios];
+    
+    if (this.terminoBusqueda.trim()) {
+      const termino = this.terminoBusqueda.toLowerCase().trim();
+      resultados = resultados.filter(usuario => {
+        const nombreCompleto = `${usuario.primerNombre} ${usuario.segundoNombre} ${usuario.primerApellido} ${usuario.segundoApellido}`.toLowerCase();
+        const email = usuario.email.toLowerCase();
+        const id = usuario.id.toString();
+        
+        return nombreCompleto.includes(termino) || 
+               email.includes(termino) || 
+               id.includes(termino);
+      });
+    }
+    
+    // Aplicar filtros adicionales si están activos
+    if (this.filtrosActivos) {
+      if (this.filtros.programa) {
+        resultados = resultados.filter(u => u.programa === this.filtros.programa);
+      }
+      
+      if (this.filtros.deporte) {
+        resultados = resultados.filter(u => u.deporte === this.filtros.deporte);
+      }
+      
+      if (this.filtros.tieneRutina !== null) {
+        resultados = resultados.filter(u => u.tieneRutina === this.filtros.tieneRutina);
+      }
+    }
+    
+    this.usuariosFiltrados = resultados;
   }
-
-  // Método para cambiar de página
-  cambiarPagina(pagina: number): void {
-    this.paginaActual = pagina;
-    // Aquí se cargarían los datos de la página correspondiente
+  
+  // Método para abrir/cerrar el panel de filtros
+  toggleFiltros(): void {
+    const filtrosPanel = document.getElementById('filtrosPanel');
+    if (filtrosPanel) {
+      if (filtrosPanel.classList.contains('d-none')) {
+        filtrosPanel.classList.remove('d-none');
+      } else {
+        filtrosPanel.classList.add('d-none');
+      }
+    }
+  }
+  
+  // Método para aplicar filtros
+  aplicarFiltros(): void {
+    this.filtrosActivos = this.filtros.programa !== '' || 
+                         this.filtros.deporte !== '' || 
+                         this.filtros.tieneRutina !== null;
+    
+    this.buscarUsuarios();
+  }
+  
+  // Método para limpiar todos los filtros
+  limpiarFiltros(): void {
+    this.filtros = {
+      programa: '',
+      deporte: '',
+      tieneRutina: null
+    };
+    
+    this.filtrosActivos = false;
+    this.terminoBusqueda = '';
+    this.buscarUsuarios();
+    
+    // Mantener el panel de filtros abierto después de limpiar
+    // para que el usuario pueda ver que los filtros se han limpiado
   }
 
   // Método para abrir el modal de crear usuario
@@ -221,13 +296,6 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     
     // Limpiar el usuario que se está editando
     this.usuarioEditando = null;
-    
-    // Resetear el modo edición en el componente hijo
-    if (this.crearUsuariosComponent) {
-      this.crearUsuariosComponent.modoEdicion = false;
-      this.crearUsuariosComponent.usuarioParaEditar = null;
-      this.crearUsuariosComponent.resetForm();
-    }
   }
   
   // Método para limpiar los elementos del modal
@@ -292,15 +360,6 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
       // @ts-ignore
       const bootstrapModal = new bootstrap.Modal(modal);
       bootstrapModal.show();
-      
-      // Asignar los datos al componente hijo después de un breve retraso
-      setTimeout(() => {
-        if (this.crearUsuariosComponent) {
-          this.crearUsuariosComponent.modoEdicion = true;
-          this.crearUsuariosComponent.usuarioParaEditar = this.usuarioEditando;
-          this.crearUsuariosComponent.cargarDatosUsuario();
-        }
-      }, 100);
     }
   }
   
@@ -473,5 +532,11 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   esDetalleVisible(usuarioId: number): boolean {
     const usuario = this.usuarios.find(u => u.id === usuarioId);
     return usuario ? usuario.mostrarDetalles : false;
+  }
+
+  // Método para cambiar de página
+  cambiarPagina(pagina: number): void {
+    this.paginaActual = pagina;
+    // Aquí se cargarían los datos de la página correspondiente
   }
 }

@@ -1,0 +1,50 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h4 class="card-title mb-0 text-primary">Fases de Entrenamiento</h4>
+          <a routerLink="/dashboard/fases/crear" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i> Nueva Fase
+          </a>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Descripción</th>
+                  <th>Duración (semanas)</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Mostrar las fases disponibles -->
+                <tr *ngFor="let fase of fases">
+                  <td>{{fase.id}}</td>
+                  <td>{{fase.nombre}}</td>
+                  <td>{{fase.descripcion}}</td>
+                  <td>{{fase.duracion}}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" (click)="editarFase(fase.id)">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" (click)="eliminarFase(fase.id)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                <!-- Mensaje cuando no hay fases -->
+                <tr *ngIf="fases.length === 0">
+                  <td colspan="5" class="text-center">No hay fases disponibles</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

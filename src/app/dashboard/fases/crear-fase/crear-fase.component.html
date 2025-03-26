@@ -1,0 +1,61 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h4 class="card-title mb-0 text-primary">Crear Nueva Fase</h4>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="faseForm" (ngSubmit)="guardarFase()">
+            <div class="mb-3">
+              <label for="nombreFase" class="form-label">Nombre de la Fase</label>
+              <input type="text" class="form-control" id="nombreFase" formControlName="nombre" placeholder="Ej: Fase de Adaptación">
+              <div *ngIf="faseForm.get('nombre')?.invalid && faseForm.get('nombre')?.touched" class="text-danger small mt-1">
+                <span *ngIf="faseForm.get('nombre')?.errors?.['required']">El nombre es obligatorio</span>
+                <span *ngIf="faseForm.get('nombre')?.errors?.['minlength']">El nombre debe tener al menos 3 caracteres</span>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="descripcionFase" class="form-label">Descripción</label>
+              <textarea class="form-control" id="descripcionFase" formControlName="descripcion" rows="3" placeholder="Descripción detallada de la fase..."></textarea>
+              <div *ngIf="faseForm.get('descripcion')?.invalid && faseForm.get('descripcion')?.touched" class="text-danger small mt-1">
+                La descripción es obligatoria
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="duracionFase" class="form-label">Duración (semanas)</label>
+              <input type="number" class="form-control" id="duracionFase" formControlName="duracion" min="1" max="52">
+              <div *ngIf="faseForm.get('duracion')?.invalid && faseForm.get('duracion')?.touched" class="text-danger small mt-1">
+                <span *ngIf="faseForm.get('duracion')?.errors?.['required']">La duración es obligatoria</span>
+                <span *ngIf="faseForm.get('duracion')?.errors?.['min']">La duración mínima es 1 semana</span>
+                <span *ngIf="faseForm.get('duracion')?.errors?.['max']">La duración máxima es 52 semanas</span>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="objetivoFase" class="form-label">Objetivo Principal</label>
+              <select class="form-select" id="objetivoFase" formControlName="objetivo">
+                <option value="" disabled>Seleccionar objetivo...</option>
+                <option value="adaptacion">Adaptación</option>
+                <option value="fuerza">Fuerza</option>
+                <option value="hipertrofia">Hipertrofia</option>
+                <option value="resistencia">Resistencia</option>
+                <option value="definicion">Definición</option>
+              </select>
+              <div *ngIf="faseForm.get('objetivo')?.invalid && faseForm.get('objetivo')?.touched" class="text-danger small mt-1">
+                Debe seleccionar un objetivo
+              </div>
+            </div>
+            
+            <div class="d-flex justify-content-end">
+              <button type="button" class="btn btn-secondary me-2" (click)="cancelar()">Cancelar</button>
+              <button type="submit" class="btn btn-primary" [disabled]="faseForm.invalid">Guardar Fase</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

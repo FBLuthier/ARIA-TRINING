@@ -73,10 +73,37 @@ export class CrearRutinasComponent implements OnInit {
   }
   
   /**
+   * Verifica si el día 1 está completo para poder agregar más días
+   * Un día se considera completo si tiene al menos una fase con al menos un ejercicio
+   */
+  esDia1Completo(): boolean {
+    if (!this.rutina || this.rutina.dias.length === 0) {
+      return false;
+    }
+    
+    const dia1 = this.rutina.dias[0];
+    
+    // Verificar que el día tenga al menos una fase
+    if (dia1.fases.length === 0) {
+      return false;
+    }
+    
+    // Verificar que al menos una fase tenga ejercicios
+    return dia1.fases.some(fase => fase.ejercicios.length > 0);
+  }
+  
+  /**
    * Agrega un nuevo día a la rutina
    */
   agregarDia(): void {
     if (!this.rutina) return;
+    
+    // Si no es el primer día y el día 1 no está completo, mostrar error
+    if (this.rutina.dias.length > 0 && !this.esDia1Completo()) {
+      this.error = 'Debes completar el Día 1 antes de agregar más días. Agrega al menos un ejercicio.';
+      setTimeout(() => this.error = '', 5000);
+      return;
+    }
     
     const nuevoDia: DiaRutina = {
       id: this.generarIdTemporal(),
@@ -368,6 +395,13 @@ export class CrearRutinasComponent implements OnInit {
   clonarDia(dia: DiaRutina): void {
     if (!this.rutina) return;
     
+    // Verificar si el día 1 está completo antes de permitir clonar
+    if (!this.esDia1Completo()) {
+      this.error = 'Debes completar el Día 1 antes de clonar días. Agrega al menos un ejercicio.';
+      setTimeout(() => this.error = '', 5000);
+      return;
+    }
+    
     // Crear una copia profunda del día
     const nuevoDia: DiaRutina = {
       id: this.generarIdTemporal(),
@@ -439,6 +473,12 @@ export class CrearRutinasComponent implements OnInit {
     
     if (this.rutina.dias.length === 0) {
       this.error = 'La rutina debe tener al menos un día';
+      return;
+    }
+    
+    // Verificar que el día 1 esté completo
+    if (!this.esDia1Completo()) {
+      this.error = 'Debes completar el Día 1 antes de guardar la rutina. Agrega al menos un ejercicio.';
       return;
     }
     
@@ -627,13 +667,11 @@ export class CrearRutinasComponent implements OnInit {
       }
     });
     
-    // Ensamblar el modal
+    // Agregar elementos al DOM
     video.appendChild(source);
     videoContainer.appendChild(video);
     videoContainer.appendChild(closeButton);
     modalOverlay.appendChild(videoContainer);
-    
-    // Agregar el modal al body
     document.body.appendChild(modalOverlay);
   }
   
@@ -641,20 +679,17 @@ export class CrearRutinasComponent implements OnInit {
    * Abre el modal para crear un nuevo ejercicio
    */
   abrirModalCrearEjercicio(): void {
-    // Aquí se implementaría la lógica para abrir un modal que permita crear un ejercicio desde cero
-    // Por ahora, mostraremos un mensaje
-    alert('Funcionalidad de crear ejercicio en desarrollo');
-    // En una implementación real, se abriría un modal o se navegaría a otra ruta
+    // Implementación pendiente
+    this.mensaje = 'Funcionalidad en desarrollo';
+    setTimeout(() => this.mensaje = '', 3000);
   }
   
   /**
    * Abre el modal para crear una fase personalizada
    */
   abrirModalCrearFase(): void {
-    // Solicitar el nombre de la fase personalizada
-    const nombreFase = prompt('Ingrese el nombre de la fase personalizada:');
-    if (nombreFase) {
-      this.agregarFase(nombreFase);
-    }
+    // Implementación pendiente
+    this.mensaje = 'Funcionalidad en desarrollo';
+    setTimeout(() => this.mensaje = '', 3000);
   }
 }

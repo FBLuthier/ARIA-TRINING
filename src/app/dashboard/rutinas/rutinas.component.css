@@ -49,6 +49,28 @@
   margin: 15px 0;
 }
 
+/* Estilos para el buscador de usuarios */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.position-relative {
+  position: relative;
+}
+
+.position-absolute {
+  position: absolute;
+  z-index: 1000;
+}
+
+.list-group-item-action:hover {
+  background-color: #f8f9fa;
+}
+
+.badge .bi-x-circle:hover {
+  color: #dc3545;
+}
+
 /* Estilos responsivos */
 @media (max-width: 768px) {
   .table-responsive {
@@ -102,7 +124,7 @@
   margin: 0 2px;
 }
 
-.input-group .form-select {
+.input-group .form-control {
   border-top-right-radius: 0.25rem;
   border-bottom-right-radius: 0.25rem;
 }

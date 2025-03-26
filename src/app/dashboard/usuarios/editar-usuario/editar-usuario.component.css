@@ -1,0 +1,31 @@
+.search-section {
+  transition: all 0.3s ease;
+}
+
+.edit-form-section {
+  transition: all 0.3s ease;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+}
+
+.input-group {
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.input-group .form-control:focus {
+  box-shadow: none;
+  border-color: #0d6efd;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: white;
+}

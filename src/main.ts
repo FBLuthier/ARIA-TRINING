@@ -1,12 +1,6 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'; // Nuevo enfoque
 import { AppComponent } from './app/app.component';
-import { routes } from './app/app.routes'; // Importa las rutas
+import { appConfig } from './app/app.config';
 
-bootstrapApplication(AppComponent, {
-  providers: [
-    provideRouter(routes), // Registra las rutas aquí
-    provideHttpClient(withInterceptorsFromDi()), // Usa el nuevo enfoque para HttpClient
-  ],
-}).catch(err => console.error(err));
+bootstrapApplication(AppComponent, appConfig)
+  .catch(err => console.error(err));

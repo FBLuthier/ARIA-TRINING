@@ -3,16 +3,52 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 220px;
+  width: 250px;
   height: 100vh;
   background-color: #fff;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  overflow-y: auto;
 }
 
+/* Menú categorías */
+.menu-category {
+  margin-bottom: 5px;
+}
+
+.menu-header {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.menu-header:hover {
+  background-color: #e9ecef;
+}
+
+.submenu-header {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submenu-header:hover {
+  background-color: #f8f9fa;
+}
+
+.toggle-icon {
+  transition: transform 0.3s ease;
+}
+
+.collapsed .toggle-icon {
+  transform: rotate(-90deg);
+}
+
+/* Estilos para los elementos del menú */
 .list-group-item {
   color: #333;
   border: none;
+  transition: all 0.2s ease;
+  padding: 0.5rem 1rem;
 }
 
 .list-group-item:hover {
@@ -21,13 +57,24 @@
 }
 
 .list-group-item.active {
-  background-color: #007bff;
-  color: white;
+  background-color: #e6f2ff;
+  color: #007bff;
+  font-weight: 500;
+  border-left: 3px solid #007bff;
+}
+
+/* Indentación y estilos para submenús */
+.ps-4 {
+  padding-left: 1.5rem !important;
+}
+
+.ps-5 {
+  padding-left: 2.5rem !important;
 }
 
 /* Contenido Principal */
 .flex-grow-1 {
-  margin-left: 220px; /* Margen izquierdo igual al ancho del sidebar */
+  margin-left: 250px; /* Margen izquierdo igual al ancho del sidebar */
   padding: 20px;
   min-height: 100vh;
 }
@@ -35,4 +82,21 @@
 .card {
   border: none;
   border-radius: 15px;
+}
+
+/* Estilos para dispositivos móviles */
+@media (max-width: 768px) {
+  #sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+  
+  .flex-grow-1 {
+    margin-left: 0;
+  }
+  
+  .menu-header, .submenu-header {
+    padding: 0.5rem;
+  }
 }

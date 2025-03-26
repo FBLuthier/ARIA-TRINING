@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { RutinaService } from './services/rutina.service';
 import { UsuarioService } from '../usuarios/services/usuario.service';
 import { Rutina } from './models/rutina.model';
@@ -28,9 +28,15 @@ export class RutinasComponent implements OnInit {
   usuarioSeleccionado: Usuario | null = null;
   usuarioIdSeleccionado: number | null = null;
   
+  // Propiedades para el buscador de usuarios
+  terminoBusqueda: string = '';
+  resultadosBusqueda: Usuario[] = [];
+  mostrarResultados: boolean = false;
+  
   // Propiedades para la gestión de modales
   mostrarCrearRutina: boolean = false;
   mostrarVerRutina: boolean = false;
+  mostrarSeleccionUsuario: boolean = false; // Nueva propiedad para mostrar la selección de usuario
   rutinaSeleccionada: Rutina | null = null;
   modoEdicion: boolean = false;
   
@@ -40,11 +46,29 @@ export class RutinasComponent implements OnInit {
   constructor(
     private rutinaService: RutinaService,
     private usuarioService: UsuarioService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.cargarUsuarios();
+    
+    // Verificar si se accede desde la ruta "rutinas/crear"
+    this.route.data.subscribe(data => {
+      if (data['accion'] === 'crear') {
+        this.crearNuevaRutina();
+      }
+    });
+  }
+
+  // Método para cerrar la lista de resultados cuando se hace clic fuera
+  @HostListener('document:click', ['$event'])
+  clickFuera(event: MouseEvent): void {
+    // Verificar si el clic fue dentro del buscador o los resultados
+    const target = event.target as HTMLElement;
+    if (!target.closest('.input-group') && !target.closest('.position-relative')) {
+      this.mostrarResultados = false;
+    }
   }
 
   // Métodos para cargar datos
@@ -80,6 +104,48 @@ export class RutinasComponent implements OnInit {
     });
   }
 
+  // Métodos para el buscador de usuarios
+  buscarUsuarios(): void {
+    this.mostrarResultados = true;
+    
+    if (!this.terminoBusqueda.trim()) {
+      this.resultadosBusqueda = [];
+      return;
+    }
+    
+    const termino = this.terminoBusqueda.toLowerCase().trim();
+    this.resultadosBusqueda = this.usuarios.filter(usuario => 
+      usuario.primerNombre.toLowerCase().includes(termino) || 
+      usuario.primerApellido.toLowerCase().includes(termino)
+    ).slice(0, 5); // Limitar a 5 resultados para no sobrecargar la UI
+  }
+
+  seleccionarUsuarioBuscado(usuario: Usuario): void {
+    this.usuarioSeleccionado = usuario;
+    this.usuarioIdSeleccionado = usuario.id;
+    this.terminoBusqueda = '';
+    this.resultadosBusqueda = [];
+    this.mostrarResultados = false;
+    
+    // Si estamos en el modo de selección de usuario para crear rutina,
+    // avanzamos al formulario de creación
+    if (this.mostrarSeleccionUsuario) {
+      this.mostrarSeleccionUsuario = false;
+      this.mostrarCrearRutina = true;
+    } else {
+      this.cargarRutinas();
+    }
+  }
+
+  limpiarSeleccion(): void {
+    this.usuarioSeleccionado = null;
+    this.usuarioIdSeleccionado = null;
+    this.terminoBusqueda = '';
+    this.resultadosBusqueda = [];
+    this.rutinas = [];
+    this.rutinasOriginal = [];
+  }
+
   // Método para seleccionar un usuario
   seleccionarUsuario(): void {
     if (this.usuarioIdSeleccionado) {
@@ -112,15 +178,33 @@ export class RutinasComponent implements OnInit {
 
   // Métodos para gestionar rutinas
   crearNuevaRutina(): void {
+    // Primero mostramos la pantalla de selección de usuario
+    this.limpiarSeleccion(); // Limpiamos la selección actual para empezar de cero
+    this.mostrarSeleccionUsuario = true;
+    this.mostrarCrearRutina = false;
+    this.mostrarVerRutina = false;
+  }
+
+  // Método para continuar con la creación de rutina después de seleccionar usuario
+  continuarCreacionRutina(): void {
     if (!this.usuarioIdSeleccionado) {
-      alert('Por favor, seleccione un usuario antes de crear una rutina.');
+      alert('Por favor, seleccione un usuario antes de continuar.');
       return;
     }
     
+    this.mostrarSeleccionUsuario = false;
     this.rutinaSeleccionada = null;
     this.modoEdicion = false;
     this.mostrarCrearRutina = true;
     this.mostrarVerRutina = false;
+  }
+
+  // Método para cancelar la selección de usuario
+  cancelarSeleccionUsuario(): void {
+    this.mostrarSeleccionUsuario = false;
+    this.limpiarSeleccion();
+    // Redirigir de vuelta a la lista de rutinas si se accedió desde la ruta "rutinas/crear"
+    this.router.navigate(['/dashboard/rutinas']);
   }
 
   editarRutina(rutina: Rutina): void {
@@ -167,20 +251,25 @@ export class RutinasComponent implements OnInit {
   // Métodos para gestionar modales
   cerrarModalCrearRutina(): void {
     this.mostrarCrearRutina = false;
+    this.cargarRutinas();
+    // Redirigir de vuelta a la lista de rutinas
+    this.router.navigate(['/dashboard/rutinas']);
   }
 
   cerrarModalVerRutina(): void {
     this.mostrarVerRutina = false;
   }
 
+  // Método para manejar el evento de rutina guardada
   onRutinaGuardada(rutina: Rutina): void {
-    this.cerrarModalCrearRutina();
     this.cargarRutinas();
+    // Redirigir de vuelta a la lista de rutinas
+    this.router.navigate(['/dashboard/rutinas']);
   }
 
-  // Métodos auxiliares
+  // Método para obtener el nombre del usuario
   obtenerNombreUsuario(usuarioId: number): string {
     const usuario = this.usuarios.find(u => u.id === usuarioId);
-    return usuario ? `${usuario.primerNombre} ${usuario.primerApellido}` : 'Usuario desconocido';
+    return usuario ? `${usuario.primerNombre} ${usuario.primerApellido}` : 'Usuario Desconocido';
   }
 }

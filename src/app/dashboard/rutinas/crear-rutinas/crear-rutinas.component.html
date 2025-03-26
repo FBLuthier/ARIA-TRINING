@@ -52,6 +52,7 @@
                         <button 
                           class="btn btn-outline-info" 
                           title="Clonar día"
+                          [disabled]="!esDia1Completo()"
                           (click)="clonarDia(dia)">
                           <i class="bi bi-files"></i>
                         </button>
@@ -81,11 +82,19 @@
                   <div class="card-body p-3 d-flex justify-content-center align-items-center">
                     <button 
                       class="btn btn-sm btn-outline-success" 
-                      (click)="agregarDia()">
-                      <i class="bi bi-plus-circle-fill me-1"></i> Agregar Día
+                      (click)="agregarDia()"
+                      [disabled]="rutina && rutina.dias && rutina.dias.length > 0 && !esDia1Completo()"
+                      [title]="rutina && rutina.dias && rutina.dias.length > 0 && !esDia1Completo() ? 'Debes completar el Día 1 antes de agregar más días' : 'Agregar un nuevo día'">
+                      <i class="bi bi-plus-circle-fill"></i>
                     </button>
                   </div>
                 </div>
+              </div>
+              <!-- Mensaje informativo sobre el día 1 -->
+              <div *ngIf="rutina && rutina.dias && rutina.dias.length > 0 && !esDia1Completo()" class="mt-2 alert alert-info alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                Debes completar el Día 1 antes de agregar más días. Agrega al menos un ejercicio.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
               </div>
             </div>
           </div>
@@ -209,32 +218,32 @@
           
           <!-- Botones para agregar fases -->
           <div class="d-flex flex-wrap gap-2 mb-3">
-            <button class="btn btn-sm btn-primary" (click)="agregarFase('Activación General')">
-              <i class="bi bi-plus-circle-fill me-1"></i> Activación General
+            <button class="btn btn-sm btn-primary" title="Activación General" (click)="agregarFase('Activación General')">
+              <i class="bi bi-plus-circle-fill"></i>
             </button>
-            <button class="btn btn-sm btn-primary" (click)="agregarFase('Fuerza')">
-              <i class="bi bi-plus-circle-fill me-1"></i> Fuerza
+            <button class="btn btn-sm btn-primary" title="Fuerza" (click)="agregarFase('Fuerza')">
+              <i class="bi bi-plus-circle-fill"></i>
             </button>
-            <button class="btn btn-sm btn-primary" (click)="agregarFase('Hipertrofia')">
-              <i class="bi bi-plus-circle-fill me-1"></i> Hipertrofia
+            <button class="btn btn-sm btn-primary" title="Hipertrofia" (click)="agregarFase('Hipertrofia')">
+              <i class="bi bi-plus-circle-fill"></i>
             </button>
-            <button class="btn btn-sm btn-primary" (click)="agregarFase('Resistencia')">
-              <i class="bi bi-plus-circle-fill me-1"></i> Resistencia
+            <button class="btn btn-sm btn-primary" title="Resistencia" (click)="agregarFase('Resistencia')">
+              <i class="bi bi-plus-circle-fill"></i>
             </button>
-            <button class="btn btn-sm btn-primary" (click)="agregarFase('Potencia')">
-              <i class="bi bi-plus-circle-fill me-1"></i> Potencia
+            <button class="btn btn-sm btn-primary" title="Potencia" (click)="agregarFase('Potencia')">
+              <i class="bi bi-plus-circle-fill"></i>
             </button>
-            <button class="btn btn-sm btn-primary" (click)="agregarFase('Cardio')">
-              <i class="bi bi-plus-circle-fill me-1"></i> Cardio
+            <button class="btn btn-sm btn-primary" title="Cardio" (click)="agregarFase('Cardio')">
+              <i class="bi bi-plus-circle-fill"></i>
             </button>
-            <button class="btn btn-sm btn-primary" (click)="agregarFase('Movilidad')">
-              <i class="bi bi-plus-circle-fill me-1"></i> Movilidad
+            <button class="btn btn-sm btn-primary" title="Movilidad" (click)="agregarFase('Movilidad')">
+              <i class="bi bi-plus-circle-fill"></i>
             </button>
-            <button class="btn btn-sm btn-primary" (click)="agregarFase('Vuelta a la Calma')">
-              <i class="bi bi-plus-circle-fill me-1"></i> Vuelta a la Calma
+            <button class="btn btn-sm btn-primary" title="Vuelta a la Calma" (click)="agregarFase('Vuelta a la Calma')">
+              <i class="bi bi-plus-circle-fill"></i>
             </button>
-            <button class="btn btn-sm btn-outline-primary" (click)="abrirModalCrearFase()">
-              <i class="bi bi-plus-square-fill me-1"></i> Fase Personalizada
+            <button class="btn btn-sm btn-outline-primary" title="Fase Personalizada" (click)="abrirModalCrearFase()">
+              <i class="bi bi-plus-square-fill"></i>
             </button>
           </div>
         </div>
@@ -255,19 +264,20 @@
         <button 
           class="btn btn-secondary" 
           (click)="cerrarModal()" 
-          [disabled]="guardando">
-          <i class="bi bi-x-circle me-1"></i> Cancelar
+          [disabled]="guardando"
+          title="Cancelar">
+          <i class="bi bi-x-circle"></i>
         </button>
         <button 
           class="btn btn-primary" 
           (click)="guardarRutina()" 
-          [disabled]="guardando">
+          [disabled]="guardando"
+          [title]="modoEdicion ? 'Guardar Cambios' : 'Crear Rutina'">
           <span *ngIf="!guardando">
-            <i class="bi bi-check-circle me-1"></i> {{ modoEdicion ? 'Guardar Cambios' : 'Crear Rutina' }}
+            <i class="bi bi-check-circle"></i>
           </span>
           <span *ngIf="guardando">
-            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-            Guardando...
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
           </span>
         </button>
       </div>

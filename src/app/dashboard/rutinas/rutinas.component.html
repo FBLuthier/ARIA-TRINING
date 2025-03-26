@@ -4,8 +4,9 @@
       <div class="card shadow-sm">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0">Gestión de Rutinas</h5>
-          <button class="btn btn-light" (click)="crearNuevaRutina()">
-            <i class="bi bi-plus-circle me-2"></i>Crear Rutina
+          <!-- El botón de crear rutina se muestra solo cuando hay un usuario seleccionado -->
+          <button *ngIf="usuarioSeleccionado" class="btn btn-light" (click)="crearNuevaRutina()">
+            <i class="bi bi-plus-circle"></i>
           </button>
         </div>
         <div class="card-body">
@@ -14,26 +15,51 @@
             <div class="col-md-6">
               <div class="input-group">
                 <span class="input-group-text bg-light">
-                  <i class="bi bi-person"></i>
+                  <i class="bi bi-search"></i>
                 </span>
-                <select class="form-select" [(ngModel)]="usuarioIdSeleccionado" (change)="seleccionarUsuario()">
-                  <option [ngValue]="null">Seleccione un usuario...</option>
-                  <option *ngFor="let usuario of usuarios" [ngValue]="usuario.id">
-                    {{ usuario.primerNombre }} {{ usuario.primerApellido }}
-                  </option>
-                </select>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  placeholder="Buscar usuario..." 
+                  [(ngModel)]="terminoBusqueda"
+                  (input)="buscarUsuarios()"
+                  autocomplete="off">
+              </div>
+              <!-- Lista de resultados de búsqueda -->
+              <div class="position-relative">
+                <div *ngIf="resultadosBusqueda.length > 0 && mostrarResultados" class="position-absolute top-100 start-0 w-100 shadow-sm bg-white border rounded z-1 mt-1">
+                  <ul class="list-group list-group-flush">
+                    <li *ngFor="let usuario of resultadosBusqueda" 
+                        class="list-group-item list-group-item-action py-2 cursor-pointer" 
+                        (click)="seleccionarUsuarioBuscado(usuario)">
+                      {{ usuario.primerNombre }} {{ usuario.primerApellido }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <!-- Usuario seleccionado -->
+              <div *ngIf="usuarioSeleccionado" class="mt-2">
+                <span class="badge bg-primary p-2">
+                  {{ usuarioSeleccionado.primerNombre }} {{ usuarioSeleccionado.primerApellido }}
+                  <i class="bi bi-x-circle ms-1 cursor-pointer" (click)="limpiarSeleccion()"></i>
+                </span>
               </div>
             </div>
             <div class="col-md-6 text-end">
+              <!-- Botones de filtro y acción -->
               <div class="btn-group">
+                <!-- Botón de crear rutina cuando hay un usuario seleccionado (versión móvil) -->
+                <button *ngIf="usuarioSeleccionado" type="button" class="btn btn-success d-md-none" (click)="crearNuevaRutina()">
+                  <i class="bi bi-plus-circle"></i>
+                </button>
                 <button type="button" class="btn btn-outline-primary" (click)="mostrarRutinasActivas()">
-                  <i class="bi bi-check-circle me-1"></i>Activas
+                  <i class="bi bi-check-circle"></i>
                 </button>
                 <button type="button" class="btn btn-outline-secondary" (click)="mostrarRutinasArchivadas()">
-                  <i class="bi bi-archive me-1"></i>Archivadas
+                  <i class="bi bi-archive"></i>
                 </button>
                 <button type="button" class="btn btn-outline-success">
-                  <i class="bi bi-file-earmark-excel me-1"></i>Exportar
+                  <i class="bi bi-file-earmark-excel"></i>
                 </button>
               </div>
             </div>
@@ -53,7 +79,7 @@
           
           <!-- Mensaje cuando no hay usuario seleccionado -->
           <div *ngIf="!cargando && !error && !usuarioIdSeleccionado" class="alert alert-info">
-            <i class="bi bi-info-circle me-2"></i>Seleccione un usuario para ver sus rutinas.
+            <i class="bi bi-info-circle me-2"></i>Busque y seleccione un usuario para ver sus rutinas.
           </div>
           
           <!-- Tabla de rutinas -->
@@ -118,6 +144,72 @@
             <i class="bi bi-info-circle me-2"></i>No se encontraron rutinas para este usuario. Haga clic en "Crear Rutina" para añadir una nueva.
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de selección de usuario para crear rutina -->
+<div *ngIf="mostrarSeleccionUsuario" class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Seleccionar Usuario para la Rutina</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="cancelarSeleccionUsuario()"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3">Elija el usuario al que se le colocará la rutina:</p>
+        
+        <!-- Buscador de usuarios -->
+        <div class="mb-3">
+          <div class="input-group">
+            <span class="input-group-text bg-light">
+              <i class="bi bi-search"></i>
+            </span>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Buscar usuario..." 
+              [(ngModel)]="terminoBusqueda"
+              (input)="buscarUsuarios()"
+              autocomplete="off">
+          </div>
+          
+          <!-- Lista de resultados de búsqueda -->
+          <div class="position-relative">
+            <div *ngIf="resultadosBusqueda.length > 0 && mostrarResultados" class="position-absolute top-100 start-0 w-100 shadow-sm bg-white border rounded z-1 mt-1">
+              <ul class="list-group list-group-flush">
+                <li *ngFor="let usuario of resultadosBusqueda" 
+                    class="list-group-item list-group-item-action py-2 cursor-pointer" 
+                    (click)="seleccionarUsuarioBuscado(usuario)">
+                  {{ usuario.primerNombre }} {{ usuario.primerApellido }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Usuario seleccionado -->
+        <div *ngIf="usuarioSeleccionado" class="alert alert-success">
+          <strong>Usuario seleccionado:</strong> {{ usuarioSeleccionado.primerNombre }} {{ usuarioSeleccionado.primerApellido }}
+        </div>
+        
+        <!-- Mensaje si no hay resultados -->
+        <div *ngIf="terminoBusqueda && resultadosBusqueda.length === 0 && mostrarResultados" class="alert alert-info">
+          No se encontraron usuarios que coincidan con la búsqueda.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelarSeleccionUsuario()">
+          <i class="bi bi-x-circle"></i>
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-primary" 
+          [disabled]="!usuarioSeleccionado"
+          (click)="continuarCreacionRutina()">
+          <i class="bi bi-arrow-right-circle"></i>
+        </button>
       </div>
     </div>
   </div>

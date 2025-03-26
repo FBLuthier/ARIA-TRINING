@@ -1,0 +1,73 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title mb-0">Editar Usuario</h5>
+        </div>
+        <div class="card-body">
+          
+          <!-- Sección de búsqueda - Visible cuando no hay usuario seleccionado -->
+          <div *ngIf="!mostrarFormulario" class="search-section">
+            <div class="row mb-4">
+              <div class="col-md-6 mx-auto">
+                <div class="form-group">
+                  <label for="buscarUsuario" class="form-label">Buscar usuario:</label>
+                  <div class="input-group">
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      id="buscarUsuario"
+                      placeholder="Ingrese nombre, apellido o email del usuario..." 
+                      [(ngModel)]="terminoBusqueda"
+                      (keyup)="buscarUsuarios()">
+                    <button class="btn btn-outline-primary" type="button">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Lista de resultados de búsqueda -->
+                <div *ngIf="usuariosFiltrados.length > 0" class="list-group mt-3">
+                  <button 
+                    *ngFor="let usuario of usuariosFiltrados" 
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    (click)="seleccionarUsuario(usuario)">
+                    <div>
+                      <span class="fw-bold">{{ usuario.primerNombre }} {{ usuario.primerApellido }}</span>
+                      <small class="d-block text-muted">{{ usuario.email }}</small>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">ID: {{ usuario.id }}</span>
+                  </button>
+                </div>
+                
+                <!-- Mensaje cuando no hay resultados -->
+                <div *ngIf="terminoBusqueda && usuariosFiltrados.length === 0" class="alert alert-info mt-3">
+                  <i class="bi bi-info-circle me-2"></i>No se encontraron usuarios que coincidan con la búsqueda
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Formulario de edición - Visible cuando hay usuario seleccionado -->
+          <div *ngIf="mostrarFormulario" class="edit-form-section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="mb-0">Editando a: {{ usuarioSeleccionado.primerNombre }} {{ usuarioSeleccionado.primerApellido }}</h5>
+              <button class="btn btn-outline-secondary" (click)="cancelarEdicion()">
+                <i class="bi bi-arrow-left me-2"></i>Volver a la búsqueda
+              </button>
+            </div>
+            
+            <!-- Componente de creación/edición de usuarios -->
+            <app-crear-usuarios 
+              [modoEdicion]="true" 
+              [usuarioParaEditar]="usuarioSeleccionado"
+              (usuarioEditado)="onUsuarioEditado($event)">
+            </app-crear-usuarios>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
