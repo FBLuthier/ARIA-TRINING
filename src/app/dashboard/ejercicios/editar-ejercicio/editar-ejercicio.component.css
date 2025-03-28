@@ -1,0 +1,25 @@
+.search-section {
+  transition: all 0.3s ease;
+}
+
+.edit-form-section {
+  transition: all 0.3s ease;
+}
+
+.list-group-item {
+  transition: all 0.2s ease;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.badge {
+  transition: all 0.2s ease;
+}
+
+.list-group-item:hover .badge {
+  transform: scale(1.1);
+}

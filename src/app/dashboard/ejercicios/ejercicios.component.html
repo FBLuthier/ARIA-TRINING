@@ -4,9 +4,6 @@
       <div class="card shadow-sm">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0">Gestión de Ejercicios</h5>
-          <button class="btn btn-light" (click)="abrirModalCrearEjercicio()">
-            <i class="bi bi-plus-circle me-2"></i>Crear Ejercicio
-          </button>
         </div>
         <div class="card-body">
           <!-- Filtros y búsqueda -->
@@ -22,128 +19,143 @@
             </div>
             <div class="col-md-6 text-end">
               <div class="btn-group">
-                <button type="button" class="btn btn-outline-primary">
-                  <i class="bi bi-filter me-1"></i>Filtrar
+                <button type="button" class="btn btn-outline-primary" (click)="mostrarFiltros = !mostrarFiltros">
+                  <i class="bi bi-filter"></i>
                 </button>
                 <button type="button" class="btn btn-outline-success">
-                  <i class="bi bi-file-earmark-excel me-1"></i>Exportar
+                  <i class="bi bi-file-earmark-excel"></i>
                 </button>
               </div>
             </div>
           </div>
           
-          <!-- Acordeón de Fases -->
-          <div class="accordion" id="acordeonFases">
-            <!-- Iteración sobre cada fase -->
-            <div class="accordion-item mb-3 border rounded shadow-sm" *ngFor="let fase of fases">
-              <h2 class="accordion-header">
-                <button class="accordion-button" 
-                        [class.collapsed]="!fase.expandido"
-                        type="button" 
-                        (click)="toggleFase(fase)">
-                  <div class="d-flex justify-content-between align-items-center w-100">
-                    <span class="fw-bold">{{ fase.nombre }}</span>
-                    <span class="badge bg-info ms-2">{{ fase.ejercicios.length }} ejercicios</span>
-                  </div>
-                </button>
-              </h2>
-              <div class="accordion-collapse collapse" [class.show]="fase.expandido">
-                <div class="accordion-body">
-                  <p class="text-muted mb-3">{{ fase.indicaciones }}</p>
-                  
-                  <!-- Tabla de ejercicios -->
-                  <div class="table-responsive">
-                    <table class="table table-striped table-hover align-middle">
-                      <thead class="table-light">
-                        <tr>
-                          <th scope="col" class="text-center">#</th>
-                          <th scope="col">Nombre del Ejercicio</th>
-                          <th scope="col">Cámara</th>
-                          <th scope="col">Indicaciones</th>
-                          <th scope="col" class="text-center">Video</th>
-                          <th scope="col" class="text-center">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <ng-container *ngFor="let ejercicio of fase.ejercicios; let i = index">
-                          <!-- Fila del ejercicio -->
-                          <tr>
-                            <td class="text-center">{{ i + 1 }}</td>
-                            <td>{{ ejercicio.nombre }}</td>
-                            <td>{{ ejercicio.camara }}</td>
-                            <td>{{ ejercicio.indicaciones }}</td>
-                            <td class="text-center">
-                              <button 
-                                *ngIf="ejercicio.videoUrl && ejercicio.videoUrl.trim() !== ''" 
-                                class="btn btn-sm btn-primary" 
-                                (click)="toggleVideo(ejercicio)"
-                                title="Ver video">
-                                <i class="bi bi-play-circle-fill me-1"></i> Ver
-                              </button>
-                              <span *ngIf="!ejercicio.videoUrl || ejercicio.videoUrl.trim() === ''" class="text-muted">
-                                <i class="bi bi-dash-circle"></i>
-                              </span>
-                            </td>
-                            <td class="text-center">
-                              <div class="btn-group btn-group-sm">
-                                <button 
-                                  class="btn btn-sm btn-outline-primary" 
-                                  title="Editar ejercicio"
-                                  (click)="editarEjercicio(ejercicio, fase)">
-                                  <i class="bi bi-pencil-fill me-1"></i> Editar
-                                </button>
-                                <button 
-                                  class="btn btn-sm btn-outline-danger" 
-                                  title="Eliminar ejercicio"
-                                  (click)="eliminarEjercicio(ejercicio, fase)">
-                                  <i class="bi bi-trash-fill me-1"></i> Eliminar
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                          
-                          <!-- Fila para mostrar el video (se muestra cuando se hace clic en el botón de video) -->
-                          <tr *ngIf="ejercicio.mostrarVideo && ejercicio.videoUrl">
-                            <td colspan="6" class="p-3 border-0">
-                              <div class="video-container mx-auto bg-light p-4 rounded shadow-sm position-relative">
-                                <button 
-                                  class="btn-close-video btn btn-sm btn-danger position-absolute top-0 end-0 m-2" 
-                                  (click)="cerrarVideo(ejercicio)"
-                                  title="Cerrar video">
-                                  <i class="bi bi-x-lg"></i>
-                                </button>
-                                <div class="ratio ratio-16x9">
-                                  <iframe 
-                                    [src]="ejercicio.videoUrl | safe" 
-                                    title="Video de {{ ejercicio.nombre }}" 
-                                    frameborder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowfullscreen></iframe>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        </ng-container>
-                        
-                        <!-- Mensaje cuando no hay ejercicios -->
-                        <tr *ngIf="fase.ejercicios.length === 0">
-                          <td colspan="6" class="text-center py-3">
-                            <div class="alert alert-info mb-0">
-                              <i class="bi bi-info-circle me-2"></i>No hay ejercicios en esta fase
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  
-                  <!-- Botón para agregar ejercicio a esta fase -->
-                  <div class="text-end mt-3">
-                    <button class="btn btn-sm btn-outline-primary" (click)="abrirModalConFase(fase)">
-                      <i class="bi bi-plus-circle me-1"></i>Agregar ejercicio a {{ fase.nombre }}
+          <!-- Panel de filtros - Visible solo cuando se hace clic en el botón de filtrar -->
+          <div class="row mb-3" *ngIf="mostrarFiltros">
+            <div class="col-12">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h6 class="card-title">Filtrar por fase</h6>
+                  <div class="d-flex flex-wrap gap-2 mt-2">
+                    <button 
+                      type="button" 
+                      class="btn btn-sm" 
+                      [class.btn-primary]="faseSeleccionadaFiltro === null" 
+                      [class.btn-outline-primary]="faseSeleccionadaFiltro !== null" 
+                      (click)="filtrarPorFase(null)">
+                      Todas
+                    </button>
+                    <button 
+                      *ngFor="let fase of fases" 
+                      type="button" 
+                      class="btn btn-sm" 
+                      [class.btn-primary]="faseSeleccionadaFiltro && faseSeleccionadaFiltro.id === fase.id" 
+                      [class.btn-outline-primary]="!faseSeleccionadaFiltro || faseSeleccionadaFiltro.id !== fase.id" 
+                      (click)="filtrarPorFase(fase)">
+                      {{ fase.nombre }}
                     </button>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Tabla de ejercicios -->
+          <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" class="text-center">#</th>
+                  <th scope="col">Nombre del Ejercicio</th>
+                  <th scope="col">Fase</th>
+                  <th scope="col">Cámara</th>
+                  <th scope="col">Indicaciones</th>
+                  <th scope="col" class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let ejercicio of ejerciciosPaginados">
+                  <td class="text-center">{{ ejercicio.id }}</td>
+                  <td>{{ ejercicio.nombre }}</td>
+                  <td>{{ getNombreFase(ejercicio.faseId) }}</td>
+                  <td>{{ ejercicio.camara }}</td>
+                  <td>
+                    <div class="indicaciones-container">
+                      <div [ngClass]="{'indicaciones-truncadas': !ejercicio.indicacionesExpandidas, 'indicaciones-completas': ejercicio.indicacionesExpandidas}">
+                        {{ ejercicio.indicaciones }}
+                      </div>
+                      <button 
+                        class="btn btn-sm btn-link expand-btn" 
+                        (click)="toggleIndicaciones(ejercicio)" 
+                        title="{{ ejercicio.indicacionesExpandidas ? 'Colapsar indicaciones' : 'Expandir indicaciones' }}">
+                        <i class="bi" [ngClass]="ejercicio.indicacionesExpandidas ? 'bi-dash-circle' : 'bi-plus-circle'"></i>
+                      </button>
+                    </div>
+                  </td>
+                  <td class="text-center acciones-column">
+                    <div class="btn-group">
+                      <button 
+                        class="btn btn-sm btn-outline-info me-1" 
+                        title="Ver video"
+                        (click)="toggleVideo(ejercicio)"
+                        [disabled]="!ejercicio.videoUrl">
+                        <i class="bi bi-eye-fill"></i>
+                      </button>
+                      <button 
+                        class="btn btn-sm btn-outline-danger" 
+                        title="Eliminar ejercicio"
+                        (click)="eliminarEjercicio(ejercicio, getFasePorId(ejercicio.faseId))">
+                        <i class="bi bi-trash-fill"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <!-- Mensaje cuando no hay ejercicios -->
+                <tr *ngIf="ejerciciosFiltrados.length === 0">
+                  <td colspan="6" class="text-center py-3">
+                    <i class="bi bi-info-circle me-2"></i>No se encontraron ejercicios
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Paginación -->
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+              <span class="text-muted">Mostrando {{ ejerciciosPaginados.length }} de {{ ejerciciosFiltrados.length }} ejercicios</span>
+            </div>
+            <nav aria-label="Paginación de ejercicios">
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" [class.disabled]="paginaActual === 1">
+                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(1)">Primera</a>
+                </li>
+                <li class="page-item" [class.disabled]="paginaActual === 1">
+                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(paginaActual - 1)">Anterior</a>
+                </li>
+                <li *ngFor="let pagina of paginasArray" class="page-item" [class.active]="pagina === paginaActual">
+                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(pagina)">{{ pagina }}</a>
+                </li>
+                <li class="page-item" [class.disabled]="paginaActual === totalPaginas">
+                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(paginaActual + 1)">Siguiente</a>
+                </li>
+                <li class="page-item" [class.disabled]="paginaActual === totalPaginas">
+                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(totalPaginas)">Última</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+          
+          <!-- Video del ejercicio seleccionado -->
+          <div *ngFor="let ejercicio of ejerciciosFiltrados">
+            <div *ngIf="ejercicio.mostrarVideo && ejercicio.videoUrl" class="mt-3 p-3 border rounded bg-light">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">{{ ejercicio.nombre }}</h6>
+                <button class="btn btn-sm btn-outline-secondary" (click)="toggleVideo(ejercicio)">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+              <div class="ratio ratio-16x9">
+                <iframe [src]="ejercicio.videoUrl | safe" allowfullscreen></iframe>
               </div>
             </div>
           </div>
@@ -152,13 +164,3 @@
     </div>
   </div>
 </div>
-
-<!-- Componente Modal de Crear Ejercicio -->
-<app-crear-ejercicios 
-  [fases]="fases" 
-  [modoEdicion]="modoEdicion" 
-  [ejercicioParaEditar]="ejercicioSeleccionadoParaEditar" 
-  [faseSeleccionadaInicial]="faseSeleccionadaParaEditar"
-  (ejercicioCreado)="onEjercicioCreado($event)"
-  (ejercicioEditado)="onEjercicioEditado($event)">
-</app-crear-ejercicios>

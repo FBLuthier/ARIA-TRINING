@@ -8,6 +8,7 @@ import { EjerciciosComponent} from './dashboard/ejercicios/ejercicios.component'
 import { CrearUsuariosComponent } from './dashboard/usuarios/crear-usuarios/crear-usuarios.component';
 import { EditarUsuarioComponent } from './dashboard/usuarios/editar-usuario/editar-usuario.component';
 import { CrearEjerciciosComponent } from './dashboard/ejercicios/crear-ejercicios/crear-ejercicios.component';
+import { EditarEjercicioComponent } from './dashboard/ejercicios/editar-ejercicio/editar-ejercicio.component';
 import { FasesComponent } from './dashboard/fases/fases.component';
 import { CrearFaseComponent } from './dashboard/fases/crear-fase/crear-fase.component';
 import { CrearRutinasComponent } from './dashboard/rutinas/crear-rutinas/crear-rutinas.component';
@@ -47,6 +48,10 @@ export const routes: Routes = [
       {
         path: 'ejercicios/crear',
         component: CrearEjerciciosComponent
+      },
+      {
+        path: 'ejercicios/editar',
+        component: EditarEjercicioComponent
       },
       
       // Rutas de Entrenamiento - Fases

@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule} from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CrearEjerciciosComponent } from './crear-ejercicios/crear-ejercicios.component';
+import { RouterModule } from '@angular/router';
 import { SafePipe } from '../../shared/pipes/safe.pipe';
 
 interface Ejercicio {
@@ -12,6 +12,7 @@ interface Ejercicio {
   videoUrl?: string;
   mostrarVideo?: boolean;
   faseId: number;
+  indicacionesExpandidas?: boolean;
 }
 
 interface Fase {
@@ -25,14 +26,24 @@ interface Fase {
 @Component({
   selector: 'app-ejercicios',
   standalone: true,
-  imports: [CommonModule, FormsModule, CrearEjerciciosComponent, SafePipe],
+  imports: [CommonModule, FormsModule, RouterModule, SafePipe],
   templateUrl: './ejercicios.component.html',
   styleUrls: ['./ejercicios.component.css']
 })
 export class EjerciciosComponent implements OnInit {
-  @ViewChild(CrearEjerciciosComponent) crearEjerciciosComponent!: CrearEjerciciosComponent;
   
   terminoBusqueda: string = '';
+  mostrarFiltros: boolean = false;
+  faseSeleccionadaFiltro: Fase | null = null;
+  ejerciciosFiltrados: Ejercicio[] = [];
+  todosLosEjercicios: Ejercicio[] = [];
+  
+  // Variables para paginación
+  ejerciciosPaginados: Ejercicio[] = [];
+  paginaActual: number = 1;
+  elementosPorPagina: number = 10;
+  totalPaginas: number = 1;
+  paginasArray: number[] = [];
   
   fases: Fase[] = [
     {
@@ -48,7 +59,8 @@ export class EjerciciosComponent implements OnInit {
           indicaciones: 'Mantener los brazos extendidos y realizar movimientos circulares controlados.',
           videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
           mostrarVideo: false,
-          faseId: 1
+          faseId: 1,
+          indicacionesExpandidas: false
         },
         {
           id: 2,
@@ -56,7 +68,8 @@ export class EjerciciosComponent implements OnInit {
           camara: 'Lateral',
           indicaciones: 'Mantener la espalda recta y las rodillas alineadas con los pies.',
           mostrarVideo: false,
-          faseId: 1
+          faseId: 1,
+          indicacionesExpandidas: false
         }
       ]
     },
@@ -72,7 +85,8 @@ export class EjerciciosComponent implements OnInit {
           camara: 'Lateral',
           indicaciones: 'Elevar las caderas manteniendo los pies y hombros en el suelo, apretar glúteos en la parte superior.',
           mostrarVideo: false,
-          faseId: 2
+          faseId: 2,
+          indicacionesExpandidas: false
         },
         {
           id: 4,
@@ -81,7 +95,8 @@ export class EjerciciosComponent implements OnInit {
           indicaciones: 'Mantener el core activado durante todo el movimiento, evitar rotación de caderas.',
           videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
           mostrarVideo: false,
-          faseId: 2
+          faseId: 2,
+          indicacionesExpandidas: false
         }
       ]
     },
@@ -98,7 +113,8 @@ export class EjerciciosComponent implements OnInit {
           indicaciones: 'Realizar un salto explosivo y aterrizar con las rodillas ligeramente flexionadas para absorber el impacto.',
           videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
           mostrarVideo: false,
-          faseId: 3
+          faseId: 3,
+          indicacionesExpandidas: false
         },
         {
           id: 6,
@@ -107,7 +123,8 @@ export class EjerciciosComponent implements OnInit {
           indicaciones: 'Utilizar la rotación del tronco para generar potencia, mantener los pies firmes en el suelo.',
           videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
           mostrarVideo: false,
-          faseId: 3
+          faseId: 3,
+          indicacionesExpandidas: false
         }
       ]
     },
@@ -123,7 +140,8 @@ export class EjerciciosComponent implements OnInit {
           camara: 'Lateral',
           indicaciones: 'Mantener el cuerpo en línea recta desde los hombros hasta los tobillos, activar el core durante todo el ejercicio.',
           mostrarVideo: false,
-          faseId: 4
+          faseId: 4,
+          indicacionesExpandidas: false
         },
         {
           id: 8,
@@ -132,7 +150,8 @@ export class EjerciciosComponent implements OnInit {
           indicaciones: 'Mantener la espalda ligeramente inclinada hacia atrás, girar el tronco de lado a lado manteniendo las piernas elevadas.',
           videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
           mostrarVideo: false,
-          faseId: 4
+          faseId: 4,
+          indicacionesExpandidas: false
         }
       ]
     },
@@ -148,7 +167,8 @@ export class EjerciciosComponent implements OnInit {
           camara: 'Lateral / Lateral posterior',
           indicaciones: 'Mantener la espalda paralela al suelo y llevar los codos pegados a la cadera.',
           mostrarVideo: false,
-          faseId: 5
+          faseId: 5,
+          indicacionesExpandidas: false
         },
         {
           id: 10,
@@ -157,7 +177,8 @@ export class EjerciciosComponent implements OnInit {
           indicaciones: 'Mantener los omóplatos retraídos y los pies apoyados en el suelo, bajar la barra hasta rozar el pecho.',
           videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
           mostrarVideo: false,
-          faseId: 5
+          faseId: 5,
+          indicacionesExpandidas: false
         }
       ]
     },
@@ -174,7 +195,8 @@ export class EjerciciosComponent implements OnInit {
           indicaciones: 'Realizar el movimiento de forma fluida, manteniendo la espalda recta durante la flexión.',
           videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
           mostrarVideo: false,
-          faseId: 6
+          faseId: 6,
+          indicacionesExpandidas: false
         },
         {
           id: 12,
@@ -182,7 +204,8 @@ export class EjerciciosComponent implements OnInit {
           camara: 'Lateral',
           indicaciones: 'Mantener las caderas bajas y estables, alternar las rodillas hacia el pecho a un ritmo rápido.',
           mostrarVideo: false,
-          faseId: 6
+          faseId: 6,
+          indicacionesExpandidas: false
         }
       ]
     },
@@ -198,7 +221,8 @@ export class EjerciciosComponent implements OnInit {
           camara: 'Lateral',
           indicaciones: 'Mantener la pierna extendida y la espalda recta, sentir el estiramiento en la parte posterior del muslo.',
           mostrarVideo: false,
-          faseId: 7
+          faseId: 7,
+          indicacionesExpandidas: false
         },
         {
           id: 14,
@@ -207,7 +231,8 @@ export class EjerciciosComponent implements OnInit {
           indicaciones: 'Rodar lentamente sobre el foam roller, detenerse en puntos de tensión durante 20-30 segundos.',
           videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
           mostrarVideo: false,
-          faseId: 7
+          faseId: 7,
+          indicacionesExpandidas: false
         }
       ]
     },
@@ -224,7 +249,8 @@ export class EjerciciosComponent implements OnInit {
           indicaciones: 'Formar una V invertida con el cuerpo, presionar los talones hacia el suelo y las manos contra la colchoneta.',
           videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
           mostrarVideo: false,
-          faseId: 8
+          faseId: 8,
+          indicacionesExpandidas: false
         },
         {
           id: 16,
@@ -232,163 +258,156 @@ export class EjerciciosComponent implements OnInit {
           camara: 'Frontal / Lateral',
           indicaciones: 'Mantener la mirada fija en un punto, activar el core para mayor estabilidad.',
           mostrarVideo: false,
-          faseId: 8
+          faseId: 8,
+          indicacionesExpandidas: false
         }
       ]
     }
   ];
 
-  // Variables para edición
-  ejercicioSeleccionadoParaEditar: Ejercicio | null = null;
-  faseSeleccionadaParaEditar: Fase | null = null;
-  modoEdicion: boolean = false;
-
-  // Método para alternar la expansión de una fase
-  toggleFase(fase: Fase): void {
-    fase.expandido = !fase.expandido;
+  ngOnInit(): void {
+    // Inicializar la lista de todos los ejercicios
+    this.inicializarEjercicios();
+    
+    // Inicialmente mostrar todos los ejercicios
+    this.ejerciciosFiltrados = [...this.todosLosEjercicios];
+    
+    // Inicializar paginación
+    this.actualizarPaginacion();
   }
-
+  
+  // Método para inicializar la lista de todos los ejercicios
+  inicializarEjercicios(): void {
+    this.todosLosEjercicios = [];
+    
+    // Extraer todos los ejercicios de todas las fases
+    this.fases.forEach(fase => {
+      // Asignar el ID de fase a cada ejercicio
+      const ejerciciosConFase = fase.ejercicios.map(ejercicio => ({
+        ...ejercicio,
+        faseId: fase.id
+      }));
+      
+      this.todosLosEjercicios = [...this.todosLosEjercicios, ...ejerciciosConFase];
+    });
+  }
+  
+  // Método para filtrar ejercicios por fase
+  filtrarPorFase(fase: Fase | null): void {
+    this.faseSeleccionadaFiltro = fase;
+    
+    if (fase === null) {
+      // Si no hay fase seleccionada, mostrar todos los ejercicios
+      this.ejerciciosFiltrados = [...this.todosLosEjercicios];
+    } else {
+      // Filtrar ejercicios por la fase seleccionada
+      this.ejerciciosFiltrados = this.todosLosEjercicios.filter(ejercicio => ejercicio.faseId === fase.id);
+    }
+    
+    // Si hay término de búsqueda, aplicar también ese filtro
+    if (this.terminoBusqueda.trim() !== '') {
+      this.buscarEjercicios();
+    }
+    
+    // Resetear paginación y actualizar
+    this.paginaActual = 1;
+    this.actualizarPaginacion();
+  }
+  
   // Método para buscar ejercicios
   buscarEjercicios(): void {
-    // Aquí implementaríamos la lógica de búsqueda
-    console.log('Buscando:', this.terminoBusqueda);
-  }
-  
-  // Método para abrir el modal de creación de ejercicio
-  abrirModalCrearEjercicio(): void {
-    this.modoEdicion = false;
-    this.ejercicioSeleccionadoParaEditar = null;
-    this.faseSeleccionadaParaEditar = null;
+    const termino = this.terminoBusqueda.toLowerCase().trim();
     
-    // Abrir el modal usando JavaScript nativo
-    const modal = document.getElementById('crearEjercicioModal');
-    if (modal) {
-      // @ts-ignore
-      const bootstrapModal = new bootstrap.Modal(modal);
-      bootstrapModal.show();
+    if (termino === '') {
+      // Si no hay término de búsqueda, volver a aplicar solo el filtro de fase
+      this.filtrarPorFase(this.faseSeleccionadaFiltro);
+      return;
     }
-  }
-  
-  // Método para abrir el modal con una fase preseleccionada
-  abrirModalConFase(fase: Fase): void {
-    this.modoEdicion = false;
-    this.ejercicioSeleccionadoParaEditar = null;
-    this.faseSeleccionadaParaEditar = fase;
     
-    // Abrir el modal usando JavaScript nativo
-    const modal = document.getElementById('crearEjercicioModal');
-    if (modal) {
-      // @ts-ignore
-      const bootstrapModal = new bootstrap.Modal(modal);
-      bootstrapModal.show();
-      
-      // Asignar la fase seleccionada al componente hijo después de un breve retraso
-      setTimeout(() => {
-        if (this.crearEjerciciosComponent) {
-          this.crearEjerciciosComponent.faseSeleccionada = fase;
-        }
-      }, 100);
-    }
-  }
-  
-  // Método para editar un ejercicio
-  editarEjercicio(ejercicio: Ejercicio, fase: Fase): void {
-    this.modoEdicion = true;
-    this.ejercicioSeleccionadoParaEditar = { ...ejercicio };
-    this.faseSeleccionadaParaEditar = fase;
+    // Filtrar primero por fase si hay una seleccionada
+    let ejerciciosAFiltrar = this.faseSeleccionadaFiltro 
+      ? this.todosLosEjercicios.filter(e => e.faseId === this.faseSeleccionadaFiltro!.id)
+      : [...this.todosLosEjercicios];
     
-    // Abrir el modal usando JavaScript nativo
-    const modal = document.getElementById('crearEjercicioModal');
-    if (modal) {
-      // @ts-ignore
-      const bootstrapModal = new bootstrap.Modal(modal);
-      bootstrapModal.show();
-      
-      // Asignar los datos al componente hijo después de un breve retraso
-      setTimeout(() => {
-        if (this.crearEjerciciosComponent) {
-          this.crearEjerciciosComponent.modoEdicion = true;
-          this.crearEjerciciosComponent.ejercicioParaEditar = this.ejercicioSeleccionadoParaEditar;
-          this.crearEjerciciosComponent.faseSeleccionada = fase;
-          this.crearEjerciciosComponent.cargarDatosEjercicio();
-        }
-      }, 100);
-    }
+    // Luego filtrar por el término de búsqueda
+    this.ejerciciosFiltrados = ejerciciosAFiltrar.filter(ejercicio => {
+      return ejercicio.nombre.toLowerCase().includes(termino) || 
+             ejercicio.indicaciones.toLowerCase().includes(termino) ||
+             ejercicio.camara.toLowerCase().includes(termino);
+    });
+    
+    // Resetear paginación y actualizar
+    this.paginaActual = 1;
+    this.actualizarPaginacion();
   }
   
-  // Método para eliminar un ejercicio
-  eliminarEjercicio(ejercicio: Ejercicio, fase: Fase): void {
-    if (confirm(`¿Estás seguro de que deseas eliminar el ejercicio "${ejercicio.nombre}"?`)) {
-      // Encontrar el índice del ejercicio en la fase
-      const index = fase.ejercicios.findIndex(e => e.id === ejercicio.id);
-      
-      if (index !== -1) {
-        // Eliminar el ejercicio de la fase
-        fase.ejercicios.splice(index, 1);
-        
-        // Mostrar mensaje de éxito
-        this.mostrarMensaje('Ejercicio eliminado correctamente', 'success');
+  // Método para actualizar la paginación
+  actualizarPaginacion(): void {
+    // Calcular el total de páginas
+    this.totalPaginas = Math.ceil(this.ejerciciosFiltrados.length / this.elementosPorPagina);
+    
+    // Crear array con números de página para la navegación
+    this.paginasArray = [];
+    for (let i = 1; i <= this.totalPaginas; i++) {
+      // Limitar a mostrar solo 5 páginas alrededor de la página actual
+      if (
+        i === 1 || 
+        i === this.totalPaginas || 
+        (i >= this.paginaActual - 2 && i <= this.paginaActual + 2)
+      ) {
+        this.paginasArray.push(i);
       }
     }
-  }
-  
-  // Método para manejar el evento de ejercicio editado
-  onEjercicioEditado(ejercicioEditado: Ejercicio): void {
-    // Encontrar la fase a la que pertenece el ejercicio
-    const fase = this.fases.find(f => f.id === ejercicioEditado.faseId);
     
-    if (fase && this.ejercicioSeleccionadoParaEditar) {
-      // Encontrar el índice del ejercicio en la fase
-      const index = fase.ejercicios.findIndex(e => e.id === this.ejercicioSeleccionadoParaEditar!.id);
-      
-      if (index !== -1) {
-        // Actualizar el ejercicio en la fase
-        fase.ejercicios[index] = {
-          ...ejercicioEditado,
-          mostrarVideo: fase.ejercicios[index].mostrarVideo
-        };
-        
-        // Mostrar mensaje de éxito
-        this.mostrarMensaje('Ejercicio actualizado correctamente', 'success');
-      }
+    // Eliminar duplicados y ordenar
+    this.paginasArray = [...new Set(this.paginasArray)].sort((a, b) => a - b);
+    
+    // Obtener los ejercicios para la página actual
+    const inicio = (this.paginaActual - 1) * this.elementosPorPagina;
+    const fin = Math.min(inicio + this.elementosPorPagina, this.ejerciciosFiltrados.length);
+    this.ejerciciosPaginados = this.ejerciciosFiltrados.slice(inicio, fin);
+  }
+  
+  // Método para cambiar de página
+  cambiarPagina(pagina: number): void {
+    if (pagina < 1 || pagina > this.totalPaginas) {
+      return;
     }
+    
+    this.paginaActual = pagina;
+    this.actualizarPaginacion();
   }
   
-  // Método para abrir el modal con una fase específica
-  abrirModalConFaseEspecifico(fase: Fase): void {
-    this.abrirModalConFase(fase);
+  // Método para obtener el nombre de la fase por su ID
+  getNombreFase(faseId: number): string {
+    const fase = this.fases.find(f => f.id === faseId);
+    return fase ? fase.nombre : 'Sin fase asignada';
   }
   
-  // Método para mostrar/ocultar el video de un ejercicio
+  // Método para obtener la fase por su ID
+  getFasePorId(faseId: number): Fase | null {
+    return this.fases.find(f => f.id === faseId) || null;
+  }
+  
+  // Método para alternar la visualización de un video
   toggleVideo(ejercicio: Ejercicio): void {
-    // Si el video ya está visible, solo lo ocultamos
-    if (ejercicio.mostrarVideo) {
-      ejercicio.mostrarVideo = false;
-      return;
+    // Primero, cerrar todos los videos
+    this.ejerciciosFiltrados.forEach(e => {
+      if (e !== ejercicio) {
+        e.mostrarVideo = false;
+      }
+    });
+    
+    // Luego, alternar el estado del video del ejercicio seleccionado
+    ejercicio.mostrarVideo = !ejercicio.mostrarVideo;
+    
+    // Si el ejercicio tiene URL de video y no ha sido procesada, procesarla
+    if (ejercicio.videoUrl && !ejercicio.videoUrl.includes('youtube.com/embed/')) {
+      ejercicio.videoUrl = this.procesarUrlYoutube(ejercicio.videoUrl);
     }
-    
-    // Si el ejercicio no tiene URL de video, no hacemos nada
-    if (!ejercicio.videoUrl) {
-      console.warn('Este ejercicio no tiene URL de video');
-      return;
-    }
-    
-    // Procesar la URL de YouTube si aún no ha sido procesada
-    ejercicio.videoUrl = this.procesarUrlYoutube(ejercicio.videoUrl);
-    
-    // Mostrar el video
-    ejercicio.mostrarVideo = true;
-    
-    // Log para depuración
-    console.log('Video URL procesada:', ejercicio.videoUrl);
   }
   
-  // Método para cerrar el video
-  cerrarVideo(ejercicio: Ejercicio): void {
-    ejercicio.mostrarVideo = false;
-  }
-  
-  // Método para procesar la URL de YouTube y convertirla en formato embebible
+  // Método para procesar la URL de YouTube
   procesarUrlYoutube(url: string): string {
     if (!url) return '';
     
@@ -425,51 +444,42 @@ export class EjerciciosComponent implements OnInit {
       return '';
     }
     
-    console.log('ID del video extraído:', videoId);
-    
     // Construir la URL de embed
     return `https://www.youtube.com/embed/${videoId}`;
   }
   
-  // Método para manejar el evento de ejercicio creado
-  onEjercicioCreado(ejercicio: Ejercicio): void {
-    console.log('Ejercicio creado:', ejercicio);
+  // Método para eliminar un ejercicio
+  eliminarEjercicio(ejercicio: Ejercicio, fase: Fase | null): void {
+    if (!fase) return;
     
-    // Encontrar la fase a la que pertenece el ejercicio
-    const fase = this.fases.find(f => f.id === ejercicio.faseId);
-    
-    if (fase) {
-      // Agregar el ejercicio a la fase
-      fase.ejercicios.push({
-        ...ejercicio,
-        mostrarVideo: false
-      });
-      
-      // Cerrar el modal
-      this.cerrarModal();
-      
-      // Mostrar mensaje de éxito
-      this.mostrarMensaje('Ejercicio creado correctamente', 'success');
-    }
-  }
-  
-  // Método para mostrar mensaje
-  mostrarMensaje(mensaje: string, tipo: string): void {
-    console.log(`Mensaje ${tipo}: ${mensaje}`);
-  }
-  
-  // Método para cerrar el modal
-  cerrarModal(): void {
-    const modal = document.getElementById('crearEjercicioModal');
-    if (modal) {
-      // @ts-ignore
-      const bootstrapModal = bootstrap.Modal.getInstance(modal);
-      if (bootstrapModal) {
-        bootstrapModal.hide();
+    if (confirm(`¿Estás seguro de que deseas eliminar el ejercicio "${ejercicio.nombre}"?`)) {
+      // Eliminar el ejercicio de la fase
+      const index = fase.ejercicios.findIndex(e => e.id === ejercicio.id);
+      if (index !== -1) {
+        fase.ejercicios.splice(index, 1);
       }
+      
+      // Eliminar el ejercicio de la lista de todos los ejercicios
+      const indexTodos = this.todosLosEjercicios.findIndex(e => e.id === ejercicio.id);
+      if (indexTodos !== -1) {
+        this.todosLosEjercicios.splice(indexTodos, 1);
+      }
+      
+      // Actualizar la lista de ejercicios filtrados
+      this.ejerciciosFiltrados = this.ejerciciosFiltrados.filter(e => e.id !== ejercicio.id);
+      
+      // Actualizar la paginación
+      this.actualizarPaginacion();
     }
   }
   
-  ngOnInit(): void {
+  // Método para expandir/colapsar una fase (ya no se usa en la nueva interfaz)
+  toggleFase(fase: Fase): void {
+    fase.expandido = !fase.expandido;
+  }
+  
+  // Método para expandir/colapsar las indicaciones de un ejercicio
+  toggleIndicaciones(ejercicio: Ejercicio): void {
+    ejercicio.indicacionesExpandidas = !ejercicio.indicacionesExpandidas;
   }
 }

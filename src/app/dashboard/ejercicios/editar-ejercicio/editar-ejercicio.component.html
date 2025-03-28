@@ -1,0 +1,98 @@
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title mb-0">Editar Ejercicio</h5>
+        </div>
+        <div class="card-body">
+          
+          <!-- Sección de búsqueda - Visible cuando no hay ejercicio seleccionado -->
+          <div *ngIf="!mostrarFormulario" class="search-section">
+            <div class="row mb-4">
+              <div class="col-md-6 mx-auto">
+                <div class="form-group">
+                  <label for="buscarEjercicio" class="form-label">Buscar ejercicio:</label>
+                  <div class="input-group">
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      id="buscarEjercicio"
+                      placeholder="Ingrese nombre o indicaciones del ejercicio..." 
+                      [(ngModel)]="terminoBusqueda"
+                      (keyup)="buscarEjercicios()">
+                    <button class="btn btn-outline-primary" type="button">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Filtro por fase -->
+                <div class="mt-3">
+                  <label class="form-label">Filtrar por fase:</label>
+                  <div class="d-flex flex-wrap gap-2">
+                    <button 
+                      type="button" 
+                      class="btn btn-sm" 
+                      [class.btn-primary]="faseSeleccionadaFiltro === null" 
+                      [class.btn-outline-primary]="faseSeleccionadaFiltro !== null" 
+                      (click)="filtrarPorFase(null)">
+                      Todas
+                    </button>
+                    <button 
+                      *ngFor="let fase of fases" 
+                      type="button" 
+                      class="btn btn-sm" 
+                      [class.btn-primary]="faseSeleccionadaFiltro && faseSeleccionadaFiltro.id === fase.id" 
+                      [class.btn-outline-primary]="!faseSeleccionadaFiltro || faseSeleccionadaFiltro.id !== fase.id" 
+                      (click)="filtrarPorFase(fase)">
+                      {{ fase.nombre }}
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Lista de resultados de búsqueda -->
+                <div *ngIf="ejerciciosFiltrados.length > 0" class="list-group mt-3">
+                  <button 
+                    *ngFor="let ejercicio of ejerciciosFiltrados" 
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    (click)="seleccionarEjercicio(ejercicio)">
+                    <div>
+                      <span class="fw-bold">{{ ejercicio.nombre }}</span>
+                      <small class="d-block text-muted">{{ getNombreFase(ejercicio.faseId) }}</small>
+                      <small class="d-block text-muted">{{ ejercicio.indicaciones | slice:0:50 }}{{ ejercicio.indicaciones.length > 50 ? '...' : '' }}</small>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">ID: {{ ejercicio.id }}</span>
+                  </button>
+                </div>
+                
+                <!-- Mensaje cuando no hay resultados -->
+                <div *ngIf="terminoBusqueda && ejerciciosFiltrados.length === 0" class="alert alert-info mt-3">
+                  <i class="bi bi-info-circle me-2"></i>No se encontraron ejercicios que coincidan con la búsqueda
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Formulario de edición - Visible cuando hay ejercicio seleccionado -->
+          <div *ngIf="mostrarFormulario" class="edit-form-section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="mb-0">Editando: {{ ejercicioSeleccionado?.nombre }}</h5>
+              <button class="btn btn-outline-secondary" (click)="cancelarEdicion()">
+                <i class="bi bi-arrow-left me-2"></i>Volver a la búsqueda
+              </button>
+            </div>
+            
+            <!-- Componente de creación/edición de ejercicios -->
+            <app-crear-ejercicios 
+              [modoEdicion]="true" 
+              [ejercicioParaEditar]="ejercicioSeleccionado"
+              (ejercicioEditado)="onEjercicioEditado($event)">
+            </app-crear-ejercicios>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

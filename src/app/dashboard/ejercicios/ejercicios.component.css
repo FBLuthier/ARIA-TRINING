@@ -180,6 +180,96 @@
   vertical-align: middle;
 }
 
+/* Estilos para el componente de ejercicios */
+
+/* Añadir padding al contenedor principal para evitar que el contenido se pierda detrás de la barra de Windows */
+.container-fluid {
+  padding-bottom: 80px; /* Aumentado para dar más espacio */
+}
+
+/* Estilos para los botones de acción */
+.btn-group {
+  display: flex;
+  justify-content: flex-end; /* Alinear a la derecha */
+  width: 100%; /* Ocupar todo el ancho disponible */
+}
+
+/* Tamaño fijo para todos los botones */
+.btn-group .btn {
+  width: 38px;
+  height: 38px;
+  padding: 6px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ancho fijo para la columna de acciones */
+.acciones-column {
+  width: 100px; /* Ancho fijo para la columna */
+}
+
+/* Estilos para la tabla */
+.table td {
+  vertical-align: middle;
+}
+
+/* Truncar texto largo */
+.text-truncate {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Estilos para las indicaciones */
+.indicaciones-container {
+  position: relative;
+  padding-right: 30px; /* Espacio para el botón de expansión */
+  min-height: 24px;
+}
+
+.indicaciones-truncadas {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.indicaciones-completas {
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.expand-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  background: none;
+  border: none;
+}
+
+.expand-btn:hover {
+  color: #007bff;
+}
+
+.expand-btn:focus {
+  box-shadow: none;
+}
+
+/* Asegurar que la paginación no quede oculta */
+.pagination {
+  margin-bottom: 20px;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

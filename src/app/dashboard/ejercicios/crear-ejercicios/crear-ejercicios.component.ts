@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { SafePipe } from '../../../shared/pipes/safe.pipe';
 
 // Interfaces locales para no depender de los modelos externos
@@ -27,45 +28,66 @@ interface Ejercicio {
   templateUrl: './crear-ejercicios.component.html',
   styleUrls: ['./crear-ejercicios.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SafePipe]
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, SafePipe]
 })
 export class CrearEjerciciosComponent implements OnInit {
-  @Input() fases: Fase[] = [
+  @Input() modoEdicion: boolean = false;
+  @Input() ejercicioParaEditar: Ejercicio | null = null;
+  @Output() ejercicioEditado = new EventEmitter<Ejercicio>();
+  
+  fases: Fase[] = [
     { id: 1, nombre: 'Activación 1', ejercicios: [] },
     { id: 2, nombre: 'Activación 2', ejercicios: [] },
     { id: 3, nombre: 'Potenciación', ejercicios: [] },
-    { id: 4, nombre: 'Específico', ejercicios: [] },
-    { id: 5, nombre: 'Metabólico', ejercicios: [] },
-    { id: 6, nombre: 'Fuerza', ejercicios: [] },
+    { id: 4, nombre: 'Core', ejercicios: [] },
+    { id: 5, nombre: 'Fuerza principal', ejercicios: [] },
+    { id: 6, nombre: 'Cardio', ejercicios: [] },
     { id: 7, nombre: 'Reset', ejercicios: [] },
     { id: 8, nombre: 'Otros', ejercicios: [] }
   ];
-  @Input() modoEdicion: boolean = false;
-  @Input() ejercicioParaEditar: Ejercicio | null = null;
-  @Input() faseSeleccionadaInicial: Fase | null = null;
   
-  @Output() ejercicioCreado = new EventEmitter<Ejercicio>();
-  @Output() ejercicioEditado = new EventEmitter<Ejercicio>();
+  faseSeleccionadaInicial: Fase | null = null;
   
   ejercicioForm!: FormGroup;
   faseSeleccionada: Fase | null = null;
   submitted = false;
   
-  constructor(private fb: FormBuilder) {
-  }
+  constructor(
+    private fb: FormBuilder,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
   
   ngOnInit(): void {
     this.inicializarFormulario();
     
-    // Si estamos en modo edición, cargar los datos del ejercicio
-    if (this.modoEdicion && this.ejercicioParaEditar) {
-      this.cargarDatosEjercicio();
-    }
-    
-    // Si tenemos una fase seleccionada inicial, usarla
-    if (this.faseSeleccionadaInicial) {
-      this.faseSeleccionada = this.faseSeleccionadaInicial;
-    }
+    // Obtener parámetros de la URL
+    this.route.queryParams.subscribe(params => {
+      // Si hay un ID de fase en los parámetros, seleccionar esa fase
+      if (params['faseId']) {
+        const faseId = Number(params['faseId']);
+        const fase = this.fases.find(f => f.id === faseId);
+        if (fase) {
+          this.faseSeleccionada = fase;
+        }
+      }
+      
+      // Si hay un ID de ejercicio, estamos en modo edición
+      if (params['id']) {
+        this.modoEdicion = true;
+        const ejercicioId = Number(params['id']);
+        // Aquí normalmente harías una llamada al servicio para obtener los datos del ejercicio
+        // Por ahora, simularemos que obtenemos los datos
+        this.ejercicioParaEditar = {
+          id: ejercicioId,
+          nombre: 'Ejercicio de ejemplo',
+          camara: 'Frontal',
+          indicaciones: 'Indicaciones de ejemplo',
+          faseId: this.faseSeleccionada ? this.faseSeleccionada.id : 1
+        };
+        this.cargarDatosEjercicio();
+      }
+    });
   }
   
   // Método para cargar los datos del ejercicio en el formulario
@@ -152,52 +174,23 @@ export class CrearEjerciciosComponent implements OnInit {
       faseId: this.faseSeleccionada ? this.faseSeleccionada.id : 0
     };
     
-    // Emitir evento con el nuevo ejercicio
+    // En un entorno real, aquí llamaríamos a un servicio para guardar los datos
+    console.log('Ejercicio guardado:', nuevoEjercicio);
+    
+    // Si estamos en modo edición, emitir el evento con el ejercicio editado
     if (this.modoEdicion) {
       this.ejercicioEditado.emit(nuevoEjercicio);
     } else {
-      this.ejercicioCreado.emit(nuevoEjercicio);
+      // Mostrar mensaje de éxito y navegar de vuelta a la lista de ejercicios
+      this.mostrarMensaje('Ejercicio creado correctamente', 'success');
+      this.router.navigate(['/dashboard/ejercicios']);
     }
-    
-    // Limpiar el formulario y cerrar el modal
-    this.resetForm();
-    this.cerrarModal();
-    
-    // Mostrar mensaje de éxito (en producción, esto se haría después de confirmar desde el backend)
-    console.log('Ejercicio creado exitosamente:', nuevoEjercicio);
   }
   
-  // Método para cerrar correctamente el modal
-  cerrarModal(): void {
-    // Resetear el formulario primero
-    this.resetForm();
-    
-    // Asegurarse de que el modal esté oculto
-    const modalElement = document.getElementById('crearEjercicioModal');
-    if (modalElement) {
-      modalElement.classList.remove('show');
-      modalElement.style.display = 'none';
-      modalElement.setAttribute('aria-hidden', 'true');
-      modalElement.removeAttribute('aria-modal');
-    }
-    
-    // Eliminar el backdrop del modal
-    const modalBackdrop = document.querySelector('.modal-backdrop');
-    if (modalBackdrop) {
-      modalBackdrop.remove();
-    }
-    
-    // Permitir scroll en el body
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
-  }
-  
-  // Método para resetear el formulario
-  resetForm(): void {
-    this.submitted = false;
-    this.ejercicioForm.reset();
-    this.faseSeleccionada = null;
+  // Método para mostrar mensaje
+  mostrarMensaje(mensaje: string, tipo: string): void {
+    console.log(`Mensaje ${tipo}: ${mensaje}`);
+    // Aquí implementaríamos un servicio de notificaciones
   }
   
   // Método para inicializar el formulario

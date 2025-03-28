@@ -1,129 +1,129 @@
-<!-- Modal para crear/editar ejercicio -->
-<div class="modal fade" id="crearEjercicioModal" tabindex="-1" aria-labelledby="crearEjercicioModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="crearEjercicioModalLabel">
-          {{ modoEdicion ? 'Editar Ejercicio' : 'Crear Nuevo Ejercicio' }}
-        </h5>
-        <button type="button" class="btn-close btn-close-white" (click)="cerrarModal()" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form [formGroup]="ejercicioForm" (ngSubmit)="onSubmit()">
-          
-          <!-- Selección de Fase -->
-          <div class="mb-4">
-            <label class="form-label fw-bold">Seleccionar Fase</label>
-            <div class="d-flex flex-wrap gap-2">
-              <button 
-                *ngFor="let fase of fases" 
-                type="button" 
-                class="btn" 
-                [class.btn-primary]="faseSeleccionada && faseSeleccionada.id === fase.id" 
-                [class.btn-outline-primary]="!faseSeleccionada || faseSeleccionada.id !== fase.id" 
-                (click)="seleccionarFase(fase)">
-                {{ fase.nombre }}
-              </button>
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title mb-0">
+            {{ modoEdicion ? 'Editar Ejercicio' : 'Crear Nuevo Ejercicio' }}
+          </h5>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="ejercicioForm" (ngSubmit)="onSubmit()">
+            
+            <!-- Selección de Fase -->
+            <div class="mb-4">
+              <label class="form-label fw-bold">Seleccionar Fase</label>
+              <div class="d-flex flex-wrap gap-2">
+                <button 
+                  *ngFor="let fase of fases" 
+                  type="button" 
+                  class="btn" 
+                  [class.btn-primary]="faseSeleccionada && faseSeleccionada.id === fase.id" 
+                  [class.btn-outline-primary]="!faseSeleccionada || faseSeleccionada.id !== fase.id" 
+                  (click)="seleccionarFase(fase)">
+                  {{ fase.nombre }}
+                </button>
+              </div>
+              <div *ngIf="submitted && !faseSeleccionada" class="text-danger mt-2">
+                <small>Debe seleccionar una fase para el ejercicio</small>
+              </div>
             </div>
-            <div *ngIf="submitted && !faseSeleccionada" class="text-danger mt-2">
-              <small>Debe seleccionar una fase para el ejercicio</small>
+            
+            <!-- Información de la fase seleccionada -->
+            <div *ngIf="faseSeleccionada" class="alert alert-info mb-4">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <span class="fw-bold">Fase: {{ faseSeleccionada.nombre }}</span>
+              </div>
             </div>
-          </div>
-          
-          <!-- Información de la fase seleccionada -->
-          <div *ngIf="faseSeleccionada" class="alert alert-info mb-4">
-            <div class="d-flex align-items-center">
-              <i class="bi bi-info-circle-fill me-2"></i>
-              <span class="fw-bold">Fase: {{ faseSeleccionada.nombre }}</span>
-            </div>
-          </div>
-          
-          <!-- Nombre del ejercicio -->
-          <div class="mb-3">
-            <label for="nombre" class="form-label fw-bold">Nombre del ejercicio</label>
-            <input 
-              type="text" 
-              class="form-control" 
-              id="nombre" 
-              formControlName="nombre" 
-              [class.is-invalid]="submitted && f['nombre'].errors"
-              placeholder="Ej: Remo con barra">
-            <div *ngIf="submitted && f['nombre'].errors" class="invalid-feedback">
-              <div *ngIf="f['nombre'].errors['required']">El nombre del ejercicio es obligatorio</div>
-              <div *ngIf="f['nombre'].errors['minlength']">El nombre debe tener al menos 3 caracteres</div>
-            </div>
-          </div>
-          
-          <!-- Cámara -->
-          <div class="mb-3">
-            <label for="camara" class="form-label fw-bold">Cámara</label>
-            <input 
-              type="text" 
-              class="form-control" 
-              id="camara" 
-              formControlName="camara" 
-              [class.is-invalid]="submitted && f['camara'].errors"
-              placeholder="Ej: Lateral / Frontal">
-            <div *ngIf="submitted && f['camara'].errors" class="invalid-feedback">
-              <div *ngIf="f['camara'].errors['required']">La posición de la cámara es obligatoria</div>
-            </div>
-          </div>
-          
-          <!-- Indicaciones -->
-          <div class="mb-3">
-            <label for="indicaciones" class="form-label fw-bold">Indicaciones</label>
-            <textarea 
-              class="form-control" 
-              id="indicaciones" 
-              formControlName="indicaciones" 
-              [class.is-invalid]="submitted && f['indicaciones'].errors"
-              rows="3" 
-              placeholder="Ej: Mantener la espalda paralela al suelo y llevar los codos pegados a la cadera."></textarea>
-            <div *ngIf="submitted && f['indicaciones'].errors" class="invalid-feedback">
-              <div *ngIf="f['indicaciones'].errors['required']">Las indicaciones son obligatorias</div>
-              <div *ngIf="f['indicaciones'].errors['minlength']">Las indicaciones deben tener al menos 10 caracteres</div>
-            </div>
-          </div>
-          
-          <!-- URL de YouTube -->
-          <div class="mb-3">
-            <label for="videoUrl" class="form-label fw-bold">URL del video (YouTube)</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-youtube"></i></span>
+            
+            <!-- Nombre del ejercicio -->
+            <div class="mb-3">
+              <label for="nombre" class="form-label fw-bold">Nombre del ejercicio</label>
               <input 
                 type="text" 
                 class="form-control" 
-                id="videoUrl" 
-                formControlName="videoUrl" 
-                [class.is-invalid]="submitted && f['videoUrl'].errors"
-                placeholder="Ej: https://www.youtube.com/watch?v=...">
-            </div>
-            <div *ngIf="submitted && f['videoUrl'].errors" class="invalid-feedback d-block">
-              <div *ngIf="f['videoUrl'].errors['pattern']">Ingrese una URL válida de YouTube</div>
-            </div>
-            <small class="text-muted">Opcional: Ingrese la URL del video demostrativo del ejercicio</small>
-          </div>
-          
-          <!-- Vista previa del video -->
-          <div *ngIf="f['videoUrl'].value && !f['videoUrl'].errors" class="mb-4">
-            <label class="form-label fw-bold">Vista previa del video</label>
-            <div class="video-container mx-auto">
-              <div class="ratio ratio-16x9">
-                <iframe 
-                  [src]="procesarUrlYoutube(f['videoUrl'].value) | safe" 
-                  title="Vista previa del video" 
-                  allowfullscreen></iframe>
+                id="nombre" 
+                formControlName="nombre" 
+                [class.is-invalid]="submitted && f['nombre'].errors"
+                placeholder="Ej: Remo con barra">
+              <div *ngIf="submitted && f['nombre'].errors" class="invalid-feedback">
+                <div *ngIf="f['nombre'].errors['required']">El nombre del ejercicio es obligatorio</div>
+                <div *ngIf="f['nombre'].errors['minlength']">El nombre debe tener al menos 3 caracteres</div>
               </div>
             </div>
-          </div>
-          
-          <div class="mt-4 d-flex justify-content-end">
-            <button type="button" class="btn btn-outline-secondary me-2" (click)="cerrarModal()">Cancelar</button>
-            <button type="submit" class="btn btn-primary">
-              {{ modoEdicion ? 'Guardar Cambios' : 'Crear Ejercicio' }}
-            </button>
-          </div>
-        </form>
+            
+            <!-- Cámara -->
+            <div class="mb-3">
+              <label for="camara" class="form-label fw-bold">Cámara</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="camara" 
+                formControlName="camara" 
+                [class.is-invalid]="submitted && f['camara'].errors"
+                placeholder="Ej: Lateral / Frontal">
+              <div *ngIf="submitted && f['camara'].errors" class="invalid-feedback">
+                <div *ngIf="f['camara'].errors['required']">La posición de la cámara es obligatoria</div>
+              </div>
+            </div>
+            
+            <!-- Indicaciones -->
+            <div class="mb-3">
+              <label for="indicaciones" class="form-label fw-bold">Indicaciones</label>
+              <textarea 
+                class="form-control" 
+                id="indicaciones" 
+                formControlName="indicaciones" 
+                [class.is-invalid]="submitted && f['indicaciones'].errors"
+                rows="3" 
+                placeholder="Ej: Mantener la espalda paralela al suelo y llevar los codos pegados a la cadera."></textarea>
+              <div *ngIf="submitted && f['indicaciones'].errors" class="invalid-feedback">
+                <div *ngIf="f['indicaciones'].errors['required']">Las indicaciones son obligatorias</div>
+                <div *ngIf="f['indicaciones'].errors['minlength']">Las indicaciones deben tener al menos 10 caracteres</div>
+              </div>
+            </div>
+            
+            <!-- URL de YouTube -->
+            <div class="mb-3">
+              <label for="videoUrl" class="form-label fw-bold">URL del video (YouTube)</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-youtube"></i></span>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="videoUrl" 
+                  formControlName="videoUrl" 
+                  [class.is-invalid]="submitted && f['videoUrl'].errors"
+                  placeholder="Ej: https://www.youtube.com/watch?v=...">
+              </div>
+              <div *ngIf="submitted && f['videoUrl'].errors" class="invalid-feedback d-block">
+                <div *ngIf="f['videoUrl'].errors['pattern']">Ingrese una URL válida de YouTube</div>
+              </div>
+              <small class="text-muted">Opcional: Ingrese la URL del video demostrativo del ejercicio</small>
+            </div>
+            
+            <!-- Vista previa del video -->
+            <div *ngIf="f['videoUrl'].value && !f['videoUrl'].errors" class="mb-4">
+              <label class="form-label fw-bold">Vista previa del video</label>
+              <div class="video-container mx-auto">
+                <div class="ratio ratio-16x9">
+                  <iframe 
+                    [src]="procesarUrlYoutube(f['videoUrl'].value) | safe" 
+                    title="Vista previa del video" 
+                    allowfullscreen></iframe>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-4 d-flex justify-content-end">
+              <a routerLink="/dashboard/ejercicios" class="btn btn-outline-secondary me-2">Cancelar</a>
+              <button type="submit" class="btn btn-primary">
+                {{ modoEdicion ? 'Guardar Cambios' : 'Crear Ejercicio' }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
