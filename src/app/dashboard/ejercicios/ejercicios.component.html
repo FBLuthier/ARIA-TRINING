@@ -4,6 +4,9 @@
       <div class="card shadow-sm">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0">Gestión de Ejercicios</h5>
+          <button class="btn btn-sm btn-light" (click)="abrirModalCrearEjercicio()">
+            <i class="bi bi-plus-circle me-1"></i> Crear Ejercicio
+          </button>
         </div>
         <div class="card-body">
           <!-- Filtros y búsqueda -->
@@ -14,15 +17,14 @@
                   <i class="bi bi-search"></i>
                 </span>
                 <input type="text" class="form-control" placeholder="Buscar ejercicio..." [(ngModel)]="terminoBusqueda">
-                <button class="btn btn-outline-secondary" type="button" (click)="buscarEjercicios()">Buscar</button>
               </div>
             </div>
             <div class="col-md-6 text-end">
               <div class="btn-group">
-                <button type="button" class="btn btn-outline-primary" (click)="mostrarFiltros = !mostrarFiltros">
+                <button type="button" class="btn btn-sm btn-outline-primary" title="Filtrar" (click)="mostrarFiltros = !mostrarFiltros">
                   <i class="bi bi-filter"></i>
                 </button>
-                <button type="button" class="btn btn-outline-success">
+                <button type="button" class="btn btn-sm btn-outline-success" title="Exportar">
                   <i class="bi bi-file-earmark-excel"></i>
                 </button>
               </div>
@@ -64,11 +66,8 @@
             <table class="table table-striped table-hover align-middle">
               <thead class="table-light">
                 <tr>
-                  <th scope="col" class="text-center">#</th>
-                  <th scope="col">Nombre del Ejercicio</th>
-                  <th scope="col">Fase</th>
-                  <th scope="col">Cámara</th>
-                  <th scope="col">Indicaciones</th>
+                  <th scope="col" class="text-center">ID</th>
+                  <th scope="col">Ejercicio</th>
                   <th scope="col" class="text-center">Acciones</th>
                 </tr>
               </thead>
@@ -76,29 +75,19 @@
                 <tr *ngFor="let ejercicio of ejerciciosPaginados">
                   <td class="text-center">{{ ejercicio.id }}</td>
                   <td>{{ ejercicio.nombre }}</td>
-                  <td>{{ getNombreFase(ejercicio.faseId) }}</td>
-                  <td>{{ ejercicio.camara }}</td>
-                  <td>
-                    <div class="indicaciones-container">
-                      <div [ngClass]="{'indicaciones-truncadas': !ejercicio.indicacionesExpandidas, 'indicaciones-completas': ejercicio.indicacionesExpandidas}">
-                        {{ ejercicio.indicaciones }}
-                      </div>
-                      <button 
-                        class="btn btn-sm btn-link expand-btn" 
-                        (click)="toggleIndicaciones(ejercicio)" 
-                        title="{{ ejercicio.indicacionesExpandidas ? 'Colapsar indicaciones' : 'Expandir indicaciones' }}">
-                        <i class="bi" [ngClass]="ejercicio.indicacionesExpandidas ? 'bi-dash-circle' : 'bi-plus-circle'"></i>
-                      </button>
-                    </div>
-                  </td>
                   <td class="text-center acciones-column">
                     <div class="btn-group">
                       <button 
                         class="btn btn-sm btn-outline-info me-1" 
-                        title="Ver video"
-                        (click)="toggleVideo(ejercicio)"
-                        [disabled]="!ejercicio.videoUrl">
-                        <i class="bi bi-eye-fill"></i>
+                        title="Ver detalles"
+                        (click)="verDetallesEjercicio(ejercicio)">
+                        <i class="bi bi-info-circle"></i>
+                      </button>
+                      <button 
+                        class="btn btn-sm btn-outline-primary me-1" 
+                        title="Editar ejercicio"
+                        (click)="abrirModalEditarEjercicio(ejercicio)">
+                        <i class="bi bi-pencil-square"></i>
                       </button>
                       <button 
                         class="btn btn-sm btn-outline-danger" 
@@ -111,7 +100,7 @@
                 </tr>
                 <!-- Mensaje cuando no hay ejercicios -->
                 <tr *ngIf="ejerciciosFiltrados.length === 0">
-                  <td colspan="6" class="text-center py-3">
+                  <td colspan="3" class="text-center py-3">
                     <i class="bi bi-info-circle me-2"></i>No se encontraron ejercicios
                   </td>
                 </tr>
@@ -156,6 +145,128 @@
               </div>
               <div class="ratio ratio-16x9">
                 <iframe [src]="ejercicio.videoUrl | safe" allowfullscreen></iframe>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Modal de crear ejercicio -->
+          <div class="modal fade" id="crearEjercicioModal" tabindex="-1" aria-labelledby="crearEjercicioModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                  <h5 class="modal-title" id="crearEjercicioModalLabel">Crear Nuevo Ejercicio</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <form>
+                    <div class="mb-3">
+                      <label for="nombreEjercicio" class="form-label">Nombre del Ejercicio</label>
+                      <input type="text" class="form-control" id="nombreEjercicio">
+                    </div>
+                    <div class="mb-3">
+                      <label for="faseEjercicio" class="form-label">Fase</label>
+                      <select class="form-select" id="faseEjercicio">
+                        <option value="" selected disabled>Seleccionar fase</option>
+                        <option *ngFor="let fase of fases" [value]="fase.id">{{ fase.nombre }}</option>
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label for="camaraEjercicio" class="form-label">Cámara</label>
+                      <input type="text" class="form-control" id="camaraEjercicio" placeholder="Ej: Frontal / Lateral">
+                    </div>
+                    <div class="mb-3">
+                      <label for="indicacionesEjercicio" class="form-label">Indicaciones</label>
+                      <textarea class="form-control" id="indicacionesEjercicio" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                      <label for="videoUrlEjercicio" class="form-label">URL del Video (opcional)</label>
+                      <input type="text" class="form-control" id="videoUrlEjercicio" placeholder="https://www.youtube.com/watch?v=...">
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                  <button type="button" class="btn btn-primary">Guardar Ejercicio</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Modal de editar ejercicio -->
+          <div class="modal fade" id="editarEjercicioModal" tabindex="-1" aria-labelledby="editarEjercicioModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                  <h5 class="modal-title" id="editarEjercicioModalLabel">Editar Ejercicio</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" *ngIf="ejercicioSeleccionado">
+                  <form>
+                    <div class="mb-3">
+                      <label for="editNombreEjercicio" class="form-label">Nombre del Ejercicio</label>
+                      <input type="text" class="form-control" id="editNombreEjercicio" [(ngModel)]="ejercicioSeleccionado.nombre" name="nombre">
+                    </div>
+                    <div class="mb-3">
+                      <label for="editFaseEjercicio" class="form-label">Fase</label>
+                      <select class="form-select" id="editFaseEjercicio" [(ngModel)]="ejercicioSeleccionado.faseId" name="faseId">
+                        <option *ngFor="let fase of fases" [value]="fase.id">{{ fase.nombre }}</option>
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label for="editCamaraEjercicio" class="form-label">Cámara</label>
+                      <input type="text" class="form-control" id="editCamaraEjercicio" [(ngModel)]="ejercicioSeleccionado.camara" name="camara">
+                    </div>
+                    <div class="mb-3">
+                      <label for="editIndicacionesEjercicio" class="form-label">Indicaciones</label>
+                      <textarea class="form-control" id="editIndicacionesEjercicio" rows="3" [(ngModel)]="ejercicioSeleccionado.indicaciones" name="indicaciones"></textarea>
+                    </div>
+                    <div class="mb-3">
+                      <label for="editVideoUrlEjercicio" class="form-label">URL del Video (opcional)</label>
+                      <input type="text" class="form-control" id="editVideoUrlEjercicio" [(ngModel)]="ejercicioSeleccionado.videoUrl" name="videoUrl">
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                  <button type="button" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Modal de detalles del ejercicio -->
+          <div class="modal fade" id="detallesEjercicioModal" tabindex="-1" aria-labelledby="detallesEjercicioModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                  <h5 class="modal-title" id="detallesEjercicioModalLabel">Detalles del Ejercicio</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" *ngIf="ejercicioSeleccionado">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h6 class="text-primary">Información General</h6>
+                      <p><strong>Nombre:</strong> {{ ejercicioSeleccionado.nombre }}</p>
+                      <p><strong>Fase:</strong> {{ getNombreFase(ejercicioSeleccionado.faseId) }}</p>
+                      <p><strong>Cámara:</strong> {{ ejercicioSeleccionado.camara }}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <h6 class="text-primary">Indicaciones</h6>
+                      <p>{{ ejercicioSeleccionado.indicaciones }}</p>
+                    </div>
+                  </div>
+                  <div class="row mt-3" *ngIf="ejercicioSeleccionado.videoUrl">
+                    <div class="col-12">
+                      <h6 class="text-primary">Video</h6>
+                      <div class="ratio ratio-16x9">
+                        <iframe [src]="ejercicioSeleccionado.videoUrl | safe" allowfullscreen></iframe>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
               </div>
             </div>
           </div>

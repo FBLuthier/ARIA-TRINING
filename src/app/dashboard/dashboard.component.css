@@ -26,77 +26,132 @@
   background-color: #e9ecef;
 }
 
+/* Estilos para submenús */
+.submenu-category {
+  margin-top: 2px;
+  border-left: 2px solid #e9ecef;
+  margin-left: 10px;
+}
+
 .submenu-header {
   cursor: pointer;
   transition: all 0.2s ease;
+  padding: 6px 0;
+  font-size: 0.95rem;
 }
 
 .submenu-header:hover {
   background-color: #f8f9fa;
 }
 
-.toggle-icon {
-  transition: transform 0.3s ease;
+.submenu-header span {
+  opacity: 0.8;
 }
 
-.collapsed .toggle-icon {
-  transform: rotate(-90deg);
+.submenu-header:hover span {
+  opacity: 1;
+  color: #0d6efd;
 }
 
-/* Estilos para los elementos del menú */
+/* Estilos para elementos de menú activos */
+.list-group-item.active {
+  background-color: #f0f7ff !important;
+  color: #0d6efd !important;
+  border-color: transparent !important;
+  font-weight: 500;
+}
+
 .list-group-item {
-  color: #333;
+  padding: 8px 16px;
   border: none;
   transition: all 0.2s ease;
-  padding: 0.5rem 1rem;
 }
 
 .list-group-item:hover {
-  background-color: #f0f8ff;
-  color: #007bff;
+  background-color: #f8f9fa !important;
+  color: #0d6efd !important;
 }
 
-.list-group-item.active {
-  background-color: #e6f2ff;
-  color: #007bff;
-  font-weight: 500;
-  border-left: 3px solid #007bff;
+/* Iconos de menú */
+.menu-header i.bi, 
+.submenu-header i.bi {
+  transition: transform 0.3s ease;
 }
 
-/* Indentación y estilos para submenús */
-.ps-4 {
-  padding-left: 1.5rem !important;
+.menu-header:hover i.bi, 
+.submenu-header:hover i.bi {
+  color: #0d6efd;
 }
 
-.ps-5 {
-  padding-left: 2.5rem !important;
+/* Animación de rotación para los iconos de chevron */
+.bi-chevron-down {
+  transform: rotate(0deg);
 }
 
-/* Contenido Principal */
-.flex-grow-1 {
-  margin-left: 250px; /* Margen izquierdo igual al ancho del sidebar */
+.bi-chevron-right {
+  transform: rotate(0deg);
+}
+
+.menu-header:hover .bi-chevron-right,
+.submenu-header:hover .bi-chevron-right {
+  transform: rotate(30deg);
+}
+
+/* Estilos para el contenido principal */
+.content-wrapper {
+  margin-left: 250px;
   padding: 20px;
+  background-color: #f8f9fa;
   min-height: 100vh;
 }
 
-.card {
-  border: none;
-  border-radius: 15px;
-}
-
-/* Estilos para dispositivos móviles */
+/* Estilos responsivos */
 @media (max-width: 768px) {
   #sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
+    width: 200px;
   }
   
-  .flex-grow-1 {
+  .content-wrapper {
+    margin-left: 200px;
+  }
+}
+
+@media (max-width: 576px) {
+  #sidebar {
+    width: 0;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  #sidebar.show {
+    width: 250px;
+    transform: translateX(0);
+  }
+  
+  .content-wrapper {
     margin-left: 0;
   }
-  
-  .menu-header, .submenu-header {
-    padding: 0.5rem;
-  }
+}
+
+/* Estilos para los niveles de anidación en submenús */
+.list-group-item.ps-5 {
+  font-size: 0.9rem;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  border-left: 1px solid #f0f0f0;
+}
+
+/* Estilos para la sección activa */
+.menu-header.active {
+  background-color: #e9ecef;
+}
+
+.submenu-header.active span {
+  color: #0d6efd;
+  font-weight: 500;
+}
+
+/* Transición suave para los colapsos */
+.collapse {
+  transition: all 0.3s ease;
 }

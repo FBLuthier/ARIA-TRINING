@@ -5,6 +5,10 @@ import { Rutina, DiaRutina, FaseRutina, EjercicioRutina } from '../models/rutina
 import { RutinaService } from '../services/rutina.service';
 import { EjercicioRutinaComponent } from '../ejercicio-rutina/ejercicio-rutina.component';
 import { Usuario } from '../../usuarios/models/usuario.model';
+import { FaseService } from '../../fases/services/fase.service';
+import { Fase } from '../../fases/models/fase.model';
+import { EjercicioService } from '../../ejercicios/services/ejercicio.service';
+import { Ejercicio } from '../../ejercicios/models/ejercicio.model';
 
 @Component({
   selector: 'app-crear-rutinas',
@@ -16,17 +20,22 @@ import { Usuario } from '../../usuarios/models/usuario.model';
 export class CrearRutinasComponent implements OnInit {
   @Input() usuarioId!: number;
   @Input() usuario: Usuario | null = null;
-  @Input() rutina: Rutina | null = null;
-  @Input() modoEdicion: boolean = true;
+  @Input() rutina: Rutina = {
+    id: 0,
+    usuarioId: 0,
+    nombre: '',
+    fechaCreacion: new Date(),
+    dias: []
+  };
+  @Input() modoEdicion: boolean = false;
   
   @Output() rutinaGuardada = new EventEmitter<Rutina>();
   @Output() cancelar = new EventEmitter<void>();
   
   // Variables para el manejo de la interfaz
-  diaSeleccionado: DiaRutina | number | null = null;
-  faseSeleccionada: FaseRutina | number | null = null;
+  diaSeleccionado: DiaRutina | null = null;
+  faseSeleccionada: FaseRutina | null = null;
   ejercicioSeleccionado: EjercicioRutina | null = null;
-  numeroDias: number = 1;
   
   // Modo de edición de ejercicio
   modoEdicionEjercicio: boolean = false;
@@ -36,60 +45,77 @@ export class CrearRutinasComponent implements OnInit {
   mensaje: string = '';
   guardando: boolean = false;
   
-  constructor(private rutinaService: RutinaService) {}
+  // Fases disponibles para seleccionar
+  fasesDisponibles: Fase[] = [];
+  ejerciciosDisponibles: Ejercicio[] = [];
+  
+  constructor(
+    private rutinaService: RutinaService,
+    private faseService: FaseService,
+    private ejercicioService: EjercicioService
+  ) {}
   
   ngOnInit(): void {
-    // Si estamos en modo edición, no inicializamos la rutina automáticamente
-    if (!this.modoEdicion || !this.rutina) {
-      this.inicializarRutina();
+    // Si no se proporciona un usuario, mostrar error
+    if (!this.usuario && !this.usuarioId) {
+      this.error = 'No se ha seleccionado un usuario';
+      return;
     }
-  }
-  
-  /**
-   * Inicializa la rutina con valores por defecto si es necesario
-   */
-  inicializarRutina(): void {
-    if (!this.rutina) {
+    
+    // Si no se proporciona una rutina, crear una nueva
+    if (!this.rutina || !this.rutina.id) {
       this.rutina = {
         id: 0,
-        usuarioId: this.usuarioId,
-        nombre: 'Nueva Rutina',
+        usuarioId: this.usuarioId || (this.usuario?.id || 0),
+        nombre: '',
         fechaCreacion: new Date(),
-        fechaModificacion: new Date(),
-        activa: true,
         dias: []
       };
       
-      // Crear un día por defecto
+      // Agregar el primer día por defecto
       this.agregarDia();
     } else {
-      this.numeroDias = this.rutina.dias.length;
+      // Si estamos en modo edición, seleccionar el primer día
+      if (this.rutina.dias && this.rutina.dias.length > 0) {
+        this.seleccionarDia(this.rutina.dias[0]);
+      }
     }
     
-    // Seleccionar el primer día por defecto
-    if (this.rutina.dias.length > 0) {
-      this.seleccionarDia(this.rutina.dias[0]);
-    }
+    // Cargar las fases disponibles
+    this.cargarFasesDisponibles();
+    
+    // Cargar los ejercicios disponibles
+    this.cargarEjerciciosDisponibles();
   }
   
   /**
-   * Verifica si el día 1 está completo para poder agregar más días
-   * Un día se considera completo si tiene al menos una fase con al menos un ejercicio
+   * Carga las fases disponibles desde el servicio
    */
-  esDia1Completo(): boolean {
-    if (!this.rutina || this.rutina.dias.length === 0) {
-      return false;
-    }
-    
-    const dia1 = this.rutina.dias[0];
-    
-    // Verificar que el día tenga al menos una fase
-    if (dia1.fases.length === 0) {
-      return false;
-    }
-    
-    // Verificar que al menos una fase tenga ejercicios
-    return dia1.fases.some(fase => fase.ejercicios.length > 0);
+  cargarFasesDisponibles(): void {
+    this.faseService.obtenerFases().subscribe({
+      next: (fases: Fase[]) => {
+        this.fasesDisponibles = fases;
+      },
+      error: (err: any) => {
+        console.error('Error al cargar las fases:', err);
+        this.error = 'No se pudieron cargar las fases disponibles';
+      }
+    });
+  }
+  
+  /**
+   * Carga los ejercicios disponibles desde el servicio
+   */
+  cargarEjerciciosDisponibles(): void {
+    this.ejercicioService.obtenerEjercicios().subscribe({
+      next: (ejercicios: Ejercicio[]) => {
+        this.ejerciciosDisponibles = ejercicios;
+      },
+      error: (err: any) => {
+        console.error('Error al cargar los ejercicios:', err);
+        this.error = 'No se pudieron cargar los ejercicios disponibles';
+      }
+    });
   }
   
   /**
@@ -97,13 +123,6 @@ export class CrearRutinasComponent implements OnInit {
    */
   agregarDia(): void {
     if (!this.rutina) return;
-    
-    // Si no es el primer día y el día 1 no está completo, mostrar error
-    if (this.rutina.dias.length > 0 && !this.esDia1Completo()) {
-      this.error = 'Debes completar el Día 1 antes de agregar más días. Agrega al menos un ejercicio.';
-      setTimeout(() => this.error = '', 5000);
-      return;
-    }
     
     const nuevoDia: DiaRutina = {
       id: this.generarIdTemporal(),
@@ -115,9 +134,6 @@ export class CrearRutinasComponent implements OnInit {
     
     this.rutina.dias.push(nuevoDia);
     this.seleccionarDia(nuevoDia);
-    
-    // Agregar una fase por defecto al nuevo día
-    this.agregarFase();
   }
   
   /**
@@ -129,10 +145,17 @@ export class CrearRutinasComponent implements OnInit {
     const dia = this.getDiaSeleccionado();
     if (!dia) return;
     
+    // Verificar si ya existe una fase con este nombre
+    const faseExistente = dia.fases.find(f => f.nombre === nombreFase);
+    if (faseExistente) {
+      this.seleccionarFase(faseExistente);
+      return;
+    }
+    
     const nuevaFase: FaseRutina = {
       id: this.generarIdTemporal(),
       diaRutinaId: dia.id,
-      faseId: 0, // Valor por defecto para el ID de la fase
+      faseId: 0,
       nombre: nombreFase || `Fase ${dia.fases.length + 1}`,
       orden: dia.fases.length + 1,
       indicaciones: '',
@@ -140,15 +163,10 @@ export class CrearRutinasComponent implements OnInit {
     };
     
     dia.fases.push(nuevaFase);
+    this.seleccionarFase(nuevaFase);
     
-    if (nombreFase) {
-      // Mostrar mensaje de éxito si se especificó un nombre
-      this.mensaje = `Fase "${nombreFase}" agregada correctamente`;
-      setTimeout(() => this.mensaje = '', 3000);
-    } else {
-      // Si no se especificó nombre, seleccionar la fase automáticamente
-      this.seleccionarFase(nuevaFase);
-    }
+    this.mensaje = `Fase "${nuevaFase.nombre}" agregada correctamente`;
+    setTimeout(() => this.mensaje = '', 3000);
   }
   
   /**
@@ -157,73 +175,46 @@ export class CrearRutinasComponent implements OnInit {
   agregarEjercicio(fase?: FaseRutina): void {
     // Si se proporciona una fase, la seleccionamos primero
     if (fase) {
-      this.faseSeleccionada = fase;
+      this.seleccionarFase(fase);
     }
     
-    if (this.faseSeleccionada === null) return;
+    // Verificar que haya una fase seleccionada
+    if (!this.faseSeleccionada) return;
     
-    const faseActual = typeof this.faseSeleccionada === 'number' 
-      ? this.getDiaSeleccionado()?.fases[this.faseSeleccionada] 
-      : this.faseSeleccionada;
+    // Filtrar ejercicios por el tipo de fase seleccionada
+    const ejerciciosFiltrados = this.ejerciciosDisponibles.filter(e => {
+      // Aquí deberías implementar la lógica para filtrar ejercicios según la fase
+      // Por ejemplo, si la fase es "Cardio", mostrar solo ejercicios de tipo cardio
+      return true; // Por ahora mostramos todos
+    });
     
-    if (!faseActual) return;
-    
+    // Aquí deberías mostrar un modal o componente para seleccionar un ejercicio
+    // Por ahora, crearemos un ejercicio de ejemplo
     const nuevoEjercicio: EjercicioRutina = {
       id: this.generarIdTemporal(),
-      faseRutinaId: faseActual.id,
+      faseRutinaId: this.faseSeleccionada.id,
       ejercicioId: 0,
       nombre: 'Nuevo Ejercicio',
+      descripcion: '',
       numSeries: 3,
-      numRepeticiones: 10,
-      tempo: {
-        tipo: 'subida-pausa-bajada',
-        tiempos: [2, 1, 2]
-      },
-      descanso: {
-        minutos: 1,
-        segundos: 0
-      },
-      camara: '',
-      indicaciones: '',
-      correcciones: '',
-      comentarios: '',
-      videoUrl: '',
-      videoEjecucionUrl: '',
-      series: [],
-      orden: faseActual.ejercicios.length + 1
+      numRepeticiones: 12,
+      descansoSegundos: 60,
+      peso: 0,
+      unidadPeso: 'kg',
+      observaciones: '',
+      orden: this.faseSeleccionada.ejercicios.length + 1
     };
     
-    // Inicializar series
-    for (let i = 0; i < nuevoEjercicio.numSeries; i++) {
-      nuevoEjercicio.series.push({
-        id: this.generarIdTemporal(),
-        ejercicioRutinaId: nuevoEjercicio.id,
-        numero: i + 1,
-        pesoObjetivo: 0,
-        pesoRealizado: 0,
-        repeticionesRealizadas: 0,
-        completada: false
-      });
-    }
-    
-    faseActual.ejercicios.push(nuevoEjercicio);
+    this.faseSeleccionada.ejercicios.push(nuevoEjercicio);
     this.editarEjercicio(nuevoEjercicio);
   }
   
   /**
    * Selecciona un día de la rutina
    */
-  seleccionarDia(dia: DiaRutina | number): void {
+  seleccionarDia(dia: DiaRutina): void {
     this.diaSeleccionado = dia;
-    
-    const diaObj = typeof dia === 'number' ? this.rutina?.dias[dia] : dia;
-    
-    if (diaObj && diaObj.fases.length > 0) {
-      this.seleccionarFase(diaObj.fases[0]);
-    } else {
-      this.faseSeleccionada = null;
-    }
-    
+    this.faseSeleccionada = null;
     this.ejercicioSeleccionado = null;
     this.modoEdicionEjercicio = false;
   }
@@ -231,7 +222,7 @@ export class CrearRutinasComponent implements OnInit {
   /**
    * Selecciona una fase del día
    */
-  seleccionarFase(fase: FaseRutina | number): void {
+  seleccionarFase(fase: FaseRutina): void {
     this.faseSeleccionada = fase;
     this.ejercicioSeleccionado = null;
     this.modoEdicionEjercicio = false;
@@ -255,22 +246,17 @@ export class CrearRutinasComponent implements OnInit {
     if (index !== -1) {
       this.rutina.dias.splice(index, 1);
       
-      // Reordenar los días
-      this.rutina.dias.forEach((d, i) => {
-        d.orden = i + 1;
-      });
-      
-      // Seleccionar otro día si hay disponibles
-      if (this.rutina.dias.length > 0) {
-        this.seleccionarDia(this.rutina.dias[0]);
-      } else {
+      // Si era el día seleccionado, deseleccionar
+      if (this.diaSeleccionado === dia) {
         this.diaSeleccionado = null;
         this.faseSeleccionada = null;
         this.ejercicioSeleccionado = null;
       }
       
-      // Actualizar el número de días
-      this.numeroDias = this.rutina.dias.length;
+      // Si quedan días, seleccionar el primero
+      if (this.rutina.dias.length > 0) {
+        this.seleccionarDia(this.rutina.dias[0]);
+      }
     }
   }
   
@@ -285,17 +271,15 @@ export class CrearRutinasComponent implements OnInit {
     if (index !== -1) {
       dia.fases.splice(index, 1);
       
-      // Reordenar las fases
-      dia.fases.forEach((f, i) => {
-        f.orden = i + 1;
-      });
-      
-      // Seleccionar otra fase si hay disponibles
-      if (dia.fases.length > 0) {
-        this.seleccionarFase(dia.fases[0]);
-      } else {
+      // Si era la fase seleccionada, deseleccionar
+      if (this.faseSeleccionada === fase) {
         this.faseSeleccionada = null;
         this.ejercicioSeleccionado = null;
+      }
+      
+      // Si quedan fases, seleccionar la primera
+      if (dia.fases.length > 0) {
+        this.seleccionarFase(dia.fases[0]);
       }
     }
   }
@@ -304,243 +288,71 @@ export class CrearRutinasComponent implements OnInit {
    * Elimina un ejercicio de la fase seleccionada
    */
   eliminarEjercicio(ejercicio: EjercicioRutina): void {
-    const fase = this.getFaseSeleccionada();
-    if (!fase) return;
+    if (!this.faseSeleccionada) return;
     
-    const index = fase.ejercicios.findIndex(e => e.id === ejercicio.id);
+    const index = this.faseSeleccionada.ejercicios.findIndex(e => e.id === ejercicio.id);
     if (index !== -1) {
-      fase.ejercicios.splice(index, 1);
+      this.faseSeleccionada.ejercicios.splice(index, 1);
       
-      this.ejercicioSeleccionado = null;
-      this.modoEdicionEjercicio = false;
+      // Si era el ejercicio seleccionado, deseleccionar
+      if (this.ejercicioSeleccionado === ejercicio) {
+        this.ejercicioSeleccionado = null;
+        this.modoEdicionEjercicio = false;
+      }
     }
-  }
-  
-  /**
-   * Guarda los cambios en el ejercicio
-   */
-  guardarEjercicio(ejercicio: EjercicioRutina): void {
-    const fase = this.getFaseSeleccionada();
-    if (!fase) return;
-    
-    const index = fase.ejercicios.findIndex(e => e.id === ejercicio.id);
-    if (index !== -1) {
-      fase.ejercicios[index] = ejercicio;
-    } else {
-      fase.ejercicios.push(ejercicio);
-    }
-    
-    this.ejercicioSeleccionado = null;
-    this.modoEdicionEjercicio = false;
-  }
-  
-  /**
-   * Cancela la edición del ejercicio
-   */
-  cancelarEdicionEjercicio(): void {
-    this.ejercicioSeleccionado = null;
-    this.modoEdicionEjercicio = false;
-  }
-  
-  /**
-   * Mueve un día hacia arriba en el orden
-   */
-  moverDiaArriba(dia: DiaRutina): void {
-    if (!this.rutina) return;
-    
-    const index = this.rutina.dias.findIndex(d => d.id === dia.id);
-    if (index > 0) {
-      // Intercambiar con el día anterior
-      const temp = this.rutina.dias[index];
-      this.rutina.dias[index] = this.rutina.dias[index - 1];
-      this.rutina.dias[index - 1] = temp;
-      
-      // Actualizar órdenes
-      this.actualizarOrdenDias();
-    }
-  }
-  
-  /**
-   * Mueve un día hacia abajo en el orden
-   */
-  moverDiaAbajo(dia: DiaRutina): void {
-    if (!this.rutina) return;
-    
-    const index = this.rutina.dias.findIndex(d => d.id === dia.id);
-    if (index !== -1 && index < this.rutina.dias.length - 1) {
-      // Intercambiar con el día siguiente
-      const temp = this.rutina.dias[index];
-      this.rutina.dias[index] = this.rutina.dias[index + 1];
-      this.rutina.dias[index + 1] = temp;
-      
-      // Actualizar órdenes
-      this.actualizarOrdenDias();
-    }
-  }
-  
-  /**
-   * Actualiza el orden de los días
-   */
-  private actualizarOrdenDias(): void {
-    if (!this.rutina) return;
-    
-    this.rutina.dias.forEach((dia, index) => {
-      dia.orden = index + 1;
-    });
-  }
-  
-  /**
-   * Clona un día existente
-   */
-  clonarDia(dia: DiaRutina): void {
-    if (!this.rutina) return;
-    
-    // Verificar si el día 1 está completo antes de permitir clonar
-    if (!this.esDia1Completo()) {
-      this.error = 'Debes completar el Día 1 antes de clonar días. Agrega al menos un ejercicio.';
-      setTimeout(() => this.error = '', 5000);
-      return;
-    }
-    
-    // Crear una copia profunda del día
-    const nuevoDia: DiaRutina = {
-      id: this.generarIdTemporal(),
-      rutinaId: this.rutina.id,
-      nombre: `${dia.nombre} (Copia)`,
-      orden: this.rutina.dias.length + 1,
-      fases: []
-    };
-    
-    // Clonar las fases
-    dia.fases.forEach(fase => {
-      const nuevaFase: FaseRutina = {
-        id: this.generarIdTemporal(),
-        diaRutinaId: nuevoDia.id,
-        faseId: fase.faseId,
-        nombre: fase.nombre,
-        orden: fase.orden,
-        indicaciones: fase.indicaciones,
-        ejercicios: []
-      };
-      
-      // Clonar los ejercicios
-      fase.ejercicios.forEach(ejercicio => {
-        const nuevoEjercicio: EjercicioRutina = {
-          id: this.generarIdTemporal(),
-          faseRutinaId: nuevaFase.id,
-          ejercicioId: ejercicio.ejercicioId,
-          nombre: ejercicio.nombre,
-          numSeries: ejercicio.numSeries,
-          numRepeticiones: ejercicio.numRepeticiones,
-          tempo: { ...ejercicio.tempo },
-          descanso: { ...ejercicio.descanso },
-          camara: ejercicio.camara,
-          indicaciones: ejercicio.indicaciones,
-          correcciones: ejercicio.correcciones,
-          comentarios: ejercicio.comentarios,
-          videoUrl: ejercicio.videoUrl,
-          videoEjecucionUrl: ejercicio.videoEjecucionUrl,
-          series: [...ejercicio.series],
-          orden: ejercicio.orden
-        };
-        
-        nuevaFase.ejercicios.push(nuevoEjercicio);
-      });
-      
-      nuevoDia.fases.push(nuevaFase);
-    });
-    
-    // Agregar el nuevo día a la rutina
-    this.rutina.dias.push(nuevoDia);
-    
-    // Seleccionar el nuevo día
-    this.seleccionarDia(nuevoDia);
   }
   
   /**
    * Guarda la rutina
    */
   guardarRutina(): void {
-    if (!this.rutina) {
-      this.error = 'No hay una rutina para guardar';
+    if (!this.rutina) return;
+    
+    // Validar que la rutina tenga un nombre
+    if (!this.rutina.nombre) {
+      this.error = 'Debe ingresar un nombre para la rutina';
       return;
     }
     
-    if (!this.rutina.nombre || this.rutina.nombre.trim() === '') {
-      this.error = 'La rutina debe tener un nombre';
-      return;
-    }
-    
+    // Validar que la rutina tenga al menos un día
     if (this.rutina.dias.length === 0) {
-      this.error = 'La rutina debe tener al menos un día';
-      return;
-    }
-    
-    // Verificar que el día 1 esté completo
-    if (!this.esDia1Completo()) {
-      this.error = 'Debes completar el Día 1 antes de guardar la rutina. Agrega al menos un ejercicio.';
+      this.error = 'Debe agregar al menos un día a la rutina';
       return;
     }
     
     this.guardando = true;
-    this.error = '';
-    this.mensaje = '';
     
-    // Actualizar fecha de modificación
-    this.rutina.fechaModificacion = new Date();
-    
-    // Asegurar que los órdenes estén correctos
-    this.actualizarOrdenDias();
-    this.actualizarOrdenFases();
-    this.actualizarOrdenEjercicios();
-    
-    const operacion = this.rutina.id === 0 
-      ? this.rutinaService.crearRutina(this.rutina)
-      : this.rutinaService.actualizarRutina(this.rutina);
-    
-    operacion.subscribe({
-      next: (rutina) => {
-        this.rutina = rutina;
-        this.rutinaGuardada.emit(rutina);
-        this.mensaje = 'Rutina guardada correctamente';
-        this.guardando = false;
-        // Cerrar automáticamente después de 2 segundos
-        setTimeout(() => this.cerrarModal(), 2000);
-      },
-      error: (err) => {
-        this.error = 'Error al guardar la rutina: ' + err.message;
-        this.guardando = false;
-        console.error('Error al guardar la rutina:', err);
-      }
-    });
-  }
-  
-  /**
-   * Actualiza el orden de las fases en todos los días
-   */
-  private actualizarOrdenFases(): void {
-    if (!this.rutina) return;
-    
-    this.rutina.dias.forEach(dia => {
-      dia.fases.forEach((fase, index) => {
-        fase.orden = index + 1;
+    if (this.modoEdicion) {
+      // Actualizar rutina existente
+      this.rutinaService.actualizarRutina(this.rutina).subscribe({
+        next: (rutina: Rutina) => {
+          this.rutina = rutina;
+          this.rutinaGuardada.emit(rutina);
+          this.mensaje = 'Rutina actualizada correctamente';
+          this.guardando = false;
+        },
+        error: (err: any) => {
+          console.error('Error al actualizar la rutina:', err);
+          this.error = 'No se pudo actualizar la rutina';
+          this.guardando = false;
+        }
       });
-    });
-  }
-  
-  /**
-   * Actualiza el orden de los ejercicios en todas las fases
-   */
-  private actualizarOrdenEjercicios(): void {
-    if (!this.rutina) return;
-    
-    this.rutina.dias.forEach(dia => {
-      dia.fases.forEach(fase => {
-        fase.ejercicios.forEach((ejercicio, index) => {
-          ejercicio.orden = index + 1;
-        });
+    } else {
+      // Crear nueva rutina
+      this.rutinaService.crearRutina(this.rutina).subscribe({
+        next: (rutina: Rutina) => {
+          this.rutina = rutina;
+          this.rutinaGuardada.emit(rutina);
+          this.mensaje = 'Rutina creada correctamente';
+          this.guardando = false;
+        },
+        error: (err: any) => {
+          console.error('Error al crear la rutina:', err);
+          this.error = 'No se pudo crear la rutina';
+          this.guardando = false;
+        }
       });
-    });
+    }
   }
   
   /**
@@ -551,145 +363,43 @@ export class CrearRutinasComponent implements OnInit {
   }
   
   /**
-   * Obtiene el día seleccionado como objeto
+   * Cancela la edición de un ejercicio
    */
-  getDiaSeleccionado(): DiaRutina | null {
-    if (this.diaSeleccionado === null || !this.rutina) return null;
-    
-    return typeof this.diaSeleccionado === 'number'
-      ? this.rutina.dias[this.diaSeleccionado]
-      : this.diaSeleccionado;
+  cancelarEdicionEjercicio(): void {
+    this.ejercicioSeleccionado = null;
+    this.modoEdicionEjercicio = false;
   }
   
   /**
-   * Obtiene la fase seleccionada como objeto
+   * Guarda un ejercicio editado
    */
-  getFaseSeleccionada(): FaseRutina | null {
-    if (this.faseSeleccionada === null) return null;
+  guardarEjercicio(ejercicio: EjercicioRutina): void {
+    if (!this.faseSeleccionada) return;
     
-    const dia = this.getDiaSeleccionado();
-    if (!dia) return null;
-    
-    return typeof this.faseSeleccionada === 'number'
-      ? dia.fases[this.faseSeleccionada]
-      : this.faseSeleccionada;
-  }
-  
-  /**
-   * Genera un ID temporal negativo para nuevos elementos
-   */
-  private generarIdTemporal(): number {
-    return -Math.floor(Math.random() * 1000000);
-  }
-  
-  /**
-   * Muestra el video de un ejercicio en un modal
-   */
-  verVideo(videoUrl: string): void {
-    if (!videoUrl) return;
-    
-    // Crear un elemento modal para mostrar el video
-    const modalOverlay = document.createElement('div');
-    modalOverlay.className = 'modal-overlay';
-    modalOverlay.style.position = 'fixed';
-    modalOverlay.style.top = '0';
-    modalOverlay.style.left = '0';
-    modalOverlay.style.width = '100%';
-    modalOverlay.style.height = '100%';
-    modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    modalOverlay.style.display = 'flex';
-    modalOverlay.style.justifyContent = 'center';
-    modalOverlay.style.alignItems = 'center';
-    modalOverlay.style.zIndex = '1050';
-    
-    // Crear el contenedor del video con tamaño responsivo
-    const videoContainer = document.createElement('div');
-    videoContainer.className = 'video-container';
-    videoContainer.style.position = 'relative';
-    videoContainer.style.backgroundColor = '#000';
-    videoContainer.style.borderRadius = '8px';
-    videoContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
-    videoContainer.style.padding = '0';
-    videoContainer.style.maxWidth = '100%';
-    
-    // Establecer tamaño responsivo: 60% en escritorio, 80% en tablets, 100% en móviles
-    videoContainer.style.width = '60%'; // Tamaño base para escritorio
-    
-    // Media queries para responsividad
-    const mediaQueryTablet = window.matchMedia('(max-width: 992px)');
-    const mediaQueryMobile = window.matchMedia('(max-width: 576px)');
-    
-    if (mediaQueryMobile.matches) {
-      videoContainer.style.width = '100%'; // Móviles
-    } else if (mediaQueryTablet.matches) {
-      videoContainer.style.width = '80%'; // Tablets
+    // Buscar el ejercicio en la fase seleccionada
+    const index = this.faseSeleccionada.ejercicios.findIndex(e => e.id === ejercicio.id);
+    if (index !== -1) {
+      // Actualizar el ejercicio
+      this.faseSeleccionada.ejercicios[index] = ejercicio;
     }
     
-    // Crear el elemento de video
-    const video = document.createElement('video');
-    video.controls = true;
-    video.autoplay = true;
-    video.style.width = '100%';
-    video.style.borderRadius = '8px';
-    
-    // Crear la fuente del video
-    const source = document.createElement('source');
-    source.src = videoUrl;
-    source.type = 'video/mp4';
-    
-    // Crear botón de cierre
-    const closeButton = document.createElement('button');
-    closeButton.innerHTML = '&times;';
-    closeButton.style.position = 'absolute';
-    closeButton.style.top = '10px';
-    closeButton.style.right = '10px';
-    closeButton.style.backgroundColor = 'white';
-    closeButton.style.border = 'none';
-    closeButton.style.borderRadius = '50%';
-    closeButton.style.width = '30px';
-    closeButton.style.height = '30px';
-    closeButton.style.fontSize = '20px';
-    closeButton.style.cursor = 'pointer';
-    closeButton.style.display = 'flex';
-    closeButton.style.justifyContent = 'center';
-    closeButton.style.alignItems = 'center';
-    closeButton.style.zIndex = '1051';
-    
-    // Agregar evento de cierre
-    closeButton.addEventListener('click', () => {
-      document.body.removeChild(modalOverlay);
-    });
-    
-    // Agregar evento de cierre al hacer clic fuera del video
-    modalOverlay.addEventListener('click', (event) => {
-      if (event.target === modalOverlay) {
-        document.body.removeChild(modalOverlay);
-      }
-    });
-    
-    // Agregar elementos al DOM
-    video.appendChild(source);
-    videoContainer.appendChild(video);
-    videoContainer.appendChild(closeButton);
-    modalOverlay.appendChild(videoContainer);
-    document.body.appendChild(modalOverlay);
+    this.ejercicioSeleccionado = null;
+    this.modoEdicionEjercicio = false;
   }
   
   /**
-   * Abre el modal para crear un nuevo ejercicio
+   * Obtiene el día seleccionado
    */
-  abrirModalCrearEjercicio(): void {
-    // Implementación pendiente
-    this.mensaje = 'Funcionalidad en desarrollo';
-    setTimeout(() => this.mensaje = '', 3000);
+  getDiaSeleccionado(): DiaRutina | null {
+    if (!this.diaSeleccionado) return null;
+    
+    return this.diaSeleccionado;
   }
   
   /**
-   * Abre el modal para crear una fase personalizada
+   * Genera un ID temporal para nuevos elementos
    */
-  abrirModalCrearFase(): void {
-    // Implementación pendiente
-    this.mensaje = 'Funcionalidad en desarrollo';
-    setTimeout(() => this.mensaje = '', 3000);
+  generarIdTemporal(): number {
+    return -Math.floor(Math.random() * 1000000);
   }
 }

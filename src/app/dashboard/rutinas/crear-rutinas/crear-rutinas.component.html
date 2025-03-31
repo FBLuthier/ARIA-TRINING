@@ -14,94 +14,47 @@
         <button type="button" class="btn-close" (click)="error = ''" aria-label="Close"></button>
       </div>
       
-      <!-- Configuración de días -->
+      <!-- Información básica de la rutina -->
       <div class="card mb-4">
         <div class="card-header bg-primary text-white">
-          <h5 class="mb-0">Configuración de Días</h5>
+          <h5 class="mb-0">Información de la Rutina</h5>
         </div>
         <div class="card-body">
-          <!-- Lista de días -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="nombreRutina" class="form-label">Nombre de la Rutina</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="nombreRutina" 
+                [(ngModel)]="rutina.nombre" 
+                placeholder="Ej: Rutina de Fuerza">
+            </div>
+          </div>
+          
+          <!-- Días de la rutina -->
           <div class="row">
             <div class="col-12">
+              <h6 class="mb-2">Días de entrenamiento</h6>
               <div class="d-flex flex-wrap gap-2 mb-3">
-                <div *ngFor="let dia of rutina?.dias || []; let i = index" class="card">
-                  <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                      <input 
-                        type="text" 
-                        class="form-control form-control-sm me-2" 
-                        [(ngModel)]="dia.nombre" 
-                        placeholder="Nombre del día">
-                      <div class="btn-group btn-group-sm">
-                        <!-- Botones para mover posición -->
-                        <button 
-                          class="btn btn-outline-secondary" 
-                          title="Mover hacia arriba"
-                          [disabled]="i === 0"
-                          (click)="moverDiaArriba(dia)">
-                          <i class="bi bi-arrow-up"></i>
-                        </button>
-                        <button 
-                          class="btn btn-outline-secondary" 
-                          title="Mover hacia abajo"
-                          [disabled]="i === (rutina?.dias?.length || 0) - 1"
-                          (click)="moverDiaAbajo(dia)">
-                          <i class="bi bi-arrow-down"></i>
-                        </button>
-                        <!-- Botón para clonar día -->
-                        <button 
-                          class="btn btn-outline-info" 
-                          title="Clonar día"
-                          [disabled]="!esDia1Completo()"
-                          (click)="clonarDia(dia)">
-                          <i class="bi bi-files"></i>
-                        </button>
-                        <!-- Botones originales mejorados -->
-                        <button 
-                          class="btn btn-outline-primary" 
-                          title="Editar día"
-                          (click)="seleccionarDia(dia)">
-                          <i class="bi bi-pencil-fill"></i>
-                        </button>
-                        <button 
-                          class="btn btn-outline-danger" 
-                          title="Eliminar día"
-                          (click)="eliminarDia(dia)">
-                          <i class="bi bi-trash-fill"></i>
-                        </button>
-                      </div>
-                    </div>
-                    <div class="text-center">
-                      <small class="text-muted">{{ dia.fases.length }} fases</small>
-                    </div>
-                  </div>
+                <div *ngFor="let dia of rutina?.dias || []; let i = index" 
+                     class="btn btn-outline-primary"
+                     [class.active]="diaSeleccionado?.id === dia.id"
+                     (click)="seleccionarDia(dia)">
+                  {{ dia.nombre }}
                 </div>
-                
-                <!-- Botón para agregar día -->
-                <div class="card bg-light">
-                  <div class="card-body p-3 d-flex justify-content-center align-items-center">
-                    <button 
-                      class="btn btn-sm btn-outline-success" 
-                      (click)="agregarDia()"
-                      [disabled]="rutina && rutina.dias && rutina.dias.length > 0 && !esDia1Completo()"
-                      [title]="rutina && rutina.dias && rutina.dias.length > 0 && !esDia1Completo() ? 'Debes completar el Día 1 antes de agregar más días' : 'Agregar un nuevo día'">
-                      <i class="bi bi-plus-circle-fill"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <!-- Mensaje informativo sobre el día 1 -->
-              <div *ngIf="rutina && rutina.dias && rutina.dias.length > 0 && !esDia1Completo()" class="mt-2 alert alert-info alert-dismissible fade show" role="alert">
-                <i class="bi bi-info-circle-fill me-2"></i>
-                Debes completar el Día 1 antes de agregar más días. Agrega al menos un ejercicio.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button 
+                  class="btn btn-outline-success" 
+                  (click)="agregarDia()">
+                  <i class="bi bi-plus-circle-fill me-1"></i> Agregar Día
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
       
-      <!-- Detalle del día seleccionado -->
+      <!-- Selección de fase -->
       <div *ngIf="diaSeleccionado !== null" class="card mb-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
           <h5 class="mb-0">{{ getDiaSeleccionado()?.nombre }}</h5>
@@ -112,139 +65,128 @@
             aria-label="Close"></button>
         </div>
         <div class="card-body">
-          <h6 class="mb-3">Fases del día</h6>
+          <!-- Selector de fases -->
+          <div class="mb-4">
+            <h6 class="mb-3">Seleccionar Fase</h6>
+            
+            <!-- Botones para seleccionar fases -->
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <button class="btn btn-sm btn-primary" title="Activación 1" (click)="agregarFase('Activación 1')">
+                <i class="bi bi-plus-circle-fill me-1"></i> Activación 1
+              </button>
+              <button class="btn btn-sm btn-primary" title="Activación 2" (click)="agregarFase('Activación 2')">
+                <i class="bi bi-plus-circle-fill me-1"></i> Activación 2
+              </button>
+              <button class="btn btn-sm btn-primary" title="Potenciación" (click)="agregarFase('Potenciación')">
+                <i class="bi bi-plus-circle-fill me-1"></i> Potenciación
+              </button>
+              <button class="btn btn-sm btn-primary" title="Core" (click)="agregarFase('Core')">
+                <i class="bi bi-plus-circle-fill me-1"></i> Core
+              </button>
+              <button class="btn btn-sm btn-primary" title="Fuerza Principal" (click)="agregarFase('Fuerza Principal')">
+                <i class="bi bi-plus-circle-fill me-1"></i> Fuerza Principal
+              </button>
+              <button class="btn btn-sm btn-primary" title="Cardio" (click)="agregarFase('Cardio')">
+                <i class="bi bi-plus-circle-fill me-1"></i> Cardio
+              </button>
+              <button class="btn btn-sm btn-primary" title="Reset" (click)="agregarFase('Reset')">
+                <i class="bi bi-plus-circle-fill me-1"></i> Reset
+              </button>
+              <button class="btn btn-sm btn-primary" title="Otros" (click)="agregarFase('Otros')">
+                <i class="bi bi-plus-circle-fill me-1"></i> Otros
+              </button>
+            </div>
+          </div>
           
-          <!-- Lista de fases -->
-          <div class="accordion mb-3" id="acordeonFases">
-            <div *ngFor="let fase of getDiaSeleccionado()?.fases || []; let i = index" class="accordion-item">
-              <h2 class="accordion-header">
-                <button 
-                  class="accordion-button" 
-                  type="button" 
-                  [attr.data-bs-toggle]="'collapse'" 
-                  [attr.data-bs-target]="'#fase' + i" 
-                  [attr.aria-expanded]="i === 0 ? 'true' : 'false'" 
-                  [attr.aria-controls]="'fase' + i">
-                  {{ fase.nombre }}
-                </button>
-              </h2>
-              <div 
-                [id]="'fase' + i" 
-                class="accordion-collapse collapse" 
-                [class.show]="i === 0" 
-                [attr.data-bs-parent]="'#acordeonFases'">
-                <div class="accordion-body">
-                  <div class="mb-3">
-                    <label for="indicacionesFase{{ i }}" class="form-label">Indicaciones de la fase:</label>
-                    <textarea 
-                      class="form-control" 
-                      id="indicacionesFase{{ i }}" 
-                      rows="2" 
-                      [(ngModel)]="fase.indicaciones"></textarea>
-                  </div>
-                  
-                  <!-- Botón para agregar ejercicio -->
-                  <div class="d-flex gap-2 mb-3">
-                    <button 
-                      class="btn btn-sm btn-outline-success" 
-                      (click)="agregarEjercicio(fase)">
-                      <i class="bi bi-plus-circle-fill me-1"></i> Agregar Ejercicio
-                    </button>
-                    <button 
-                      class="btn btn-sm btn-outline-primary" 
-                      (click)="abrirModalCrearEjercicio()">
-                      <i class="bi bi-plus-square-fill me-1"></i> Crear Ejercicio
-                    </button>
-                  </div>
-                  
-                  <!-- Lista de ejercicios -->
-                  <div *ngIf="fase.ejercicios.length > 0" class="table-responsive">
-                    <table class="table table-striped table-hover align-middle">
-                      <thead class="table-light">
-                        <tr>
-                          <th scope="col" class="text-center">#</th>
-                          <th scope="col">Nombre</th>
-                          <th scope="col" class="text-center">Series</th>
-                          <th scope="col" class="text-center">Repeticiones</th>
-                          <th scope="col" class="text-center">Tempo</th>
-                          <th scope="col" class="text-center">Descanso</th>
-                          <th scope="col" class="text-center">Video</th>
-                          <th scope="col" class="text-center">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr *ngFor="let ejercicio of fase.ejercicios; let j = index">
-                          <td>{{ j + 1 }}</td>
-                          <td>{{ ejercicio.nombre }}</td>
-                          <td class="text-center">{{ ejercicio.numSeries }}</td>
-                          <td class="text-center">{{ ejercicio.numRepeticiones }}</td>
-                          <td class="text-center">{{ ejercicio.tempo.tiempos.join('-') }}</td>
-                          <td class="text-center">{{ ejercicio.descanso.minutos }}:{{ ejercicio.descanso.segundos < 10 ? '0' + ejercicio.descanso.segundos : ejercicio.descanso.segundos }}</td>
-                          <td class="text-center">
-                            <button 
-                              *ngIf="ejercicio.videoUrl" 
-                              class="btn btn-sm btn-primary" 
-                              (click)="verVideo(ejercicio.videoUrl)">
-                              <i class="bi bi-play-circle-fill me-1"></i> Ver Video
-                            </button>
-                          </td>
-                          <td class="text-center">
-                            <div class="btn-group btn-group-sm">
-                              <button 
-                                class="btn btn-outline-primary" 
-                                title="Editar ejercicio"
-                                (click)="editarEjercicio(ejercicio)">
-                                <i class="bi bi-pencil-fill"></i>
-                              </button>
-                              <button 
-                                class="btn btn-outline-danger" 
-                                title="Eliminar ejercicio"
-                                (click)="eliminarEjercicio(ejercicio)">
-                                <i class="bi bi-trash-fill"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div *ngIf="fase.ejercicios.length === 0" class="alert alert-info">
-                    No hay ejercicios en esta fase. Haga clic en "Agregar Ejercicio" para añadir uno.
+          <!-- Detalles de la fase seleccionada -->
+          <div *ngIf="faseSeleccionada !== null">
+            <div class="accordion mb-3" id="acordeonFases">
+              <div *ngFor="let fase of getDiaSeleccionado()?.fases || []; let i = index" class="accordion-item">
+                <h2 class="accordion-header">
+                  <button 
+                    class="accordion-button" 
+                    type="button" 
+                    [attr.data-bs-toggle]="'collapse'" 
+                    [attr.data-bs-target]="'#fase' + i" 
+                    [attr.aria-expanded]="fase === faseSeleccionada ? 'true' : 'false'" 
+                    [attr.aria-controls]="'fase' + i"
+                    (click)="seleccionarFase(fase)">
+                    {{ fase.nombre }}
+                  </button>
+                </h2>
+                <div 
+                  [id]="'fase' + i" 
+                  class="accordion-collapse collapse" 
+                  [class.show]="fase === faseSeleccionada" 
+                  [attr.data-bs-parent]="'#acordeonFases'">
+                  <div class="accordion-body">
+                    <div class="mb-3">
+                      <label for="indicacionesFase{{ i }}" class="form-label">Indicaciones de la fase:</label>
+                      <textarea 
+                        class="form-control" 
+                        id="indicacionesFase{{ i }}" 
+                        rows="2" 
+                        [(ngModel)]="fase.indicaciones"></textarea>
+                    </div>
+                    
+                    <!-- Botón para agregar ejercicio -->
+                    <div class="d-flex gap-2 mb-3">
+                      <button 
+                        class="btn btn-sm btn-outline-success" 
+                        (click)="agregarEjercicio(fase)">
+                        <i class="bi bi-plus-circle-fill me-1"></i> Agregar Ejercicio
+                      </button>
+                    </div>
+                    
+                    <!-- Tabla de ejercicios -->
+                    <div class="table-responsive" *ngIf="fase.ejercicios.length > 0">
+                      <table class="table table-sm table-striped table-hover align-middle">
+                        <thead class="table-light">
+                          <tr>
+                            <th scope="col" style="width: 50px">#</th>
+                            <th scope="col">Ejercicio</th>
+                            <th scope="col" class="text-center">Series</th>
+                            <th scope="col" class="text-center">Reps</th>
+                            <th scope="col" class="text-center">Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let ejercicio of fase.ejercicios; let j = index">
+                            <td>{{ j + 1 }}</td>
+                            <td>{{ ejercicio.nombre }}</td>
+                            <td class="text-center">{{ ejercicio.numSeries }}</td>
+                            <td class="text-center">{{ ejercicio.numRepeticiones }}</td>
+                            <td class="text-center">
+                              <div class="btn-group btn-group-sm">
+                                <button 
+                                  type="button" 
+                                  class="btn btn-outline-primary" 
+                                  title="Editar ejercicio"
+                                  (click)="editarEjercicio(ejercicio)">
+                                  <i class="bi bi-pencil-fill"></i>
+                                </button>
+                                <button 
+                                  type="button" 
+                                  class="btn btn-outline-danger" 
+                                  title="Eliminar ejercicio"
+                                  (click)="eliminarEjercicio(ejercicio)">
+                                  <i class="bi bi-trash-fill"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    <!-- Mensaje cuando no hay ejercicios -->
+                    <div *ngIf="fase.ejercicios.length === 0" class="alert alert-info">
+                      No hay ejercicios en esta fase. Haga clic en "Agregar Ejercicio" para añadir uno.
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          
-          <!-- Botones para agregar fases -->
-          <div class="d-flex flex-wrap gap-2 mb-3">
-            <button class="btn btn-sm btn-primary" title="Activación General" (click)="agregarFase('Activación General')">
-              <i class="bi bi-plus-circle-fill"></i>
-            </button>
-            <button class="btn btn-sm btn-primary" title="Fuerza" (click)="agregarFase('Fuerza')">
-              <i class="bi bi-plus-circle-fill"></i>
-            </button>
-            <button class="btn btn-sm btn-primary" title="Hipertrofia" (click)="agregarFase('Hipertrofia')">
-              <i class="bi bi-plus-circle-fill"></i>
-            </button>
-            <button class="btn btn-sm btn-primary" title="Resistencia" (click)="agregarFase('Resistencia')">
-              <i class="bi bi-plus-circle-fill"></i>
-            </button>
-            <button class="btn btn-sm btn-primary" title="Potencia" (click)="agregarFase('Potencia')">
-              <i class="bi bi-plus-circle-fill"></i>
-            </button>
-            <button class="btn btn-sm btn-primary" title="Cardio" (click)="agregarFase('Cardio')">
-              <i class="bi bi-plus-circle-fill"></i>
-            </button>
-            <button class="btn btn-sm btn-primary" title="Movilidad" (click)="agregarFase('Movilidad')">
-              <i class="bi bi-plus-circle-fill"></i>
-            </button>
-            <button class="btn btn-sm btn-primary" title="Vuelta a la Calma" (click)="agregarFase('Vuelta a la Calma')">
-              <i class="bi bi-plus-circle-fill"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-primary" title="Fase Personalizada" (click)="abrirModalCrearFase()">
-              <i class="bi bi-plus-square-fill"></i>
-            </button>
           </div>
         </div>
       </div>
@@ -253,32 +195,28 @@
       <div *ngIf="faseSeleccionada !== null && ejercicioSeleccionado !== null">
         <app-ejercicio-rutina
           [ejercicio]="ejercicioSeleccionado"
-          [modoEdicion]="modoEdicion"
+          [modoEdicion]="modoEdicionEjercicio"
           (guardar)="guardarEjercicio($event)"
           (cancelar)="cancelarEdicionEjercicio()">
         </app-ejercicio-rutina>
       </div>
       
       <!-- Botones de acción -->
-      <div class="d-flex justify-content-end gap-2 mt-3">
+      <div class="d-flex justify-content-end gap-2">
         <button 
+          type="button" 
           class="btn btn-secondary" 
-          (click)="cerrarModal()" 
-          [disabled]="guardando"
-          title="Cancelar">
-          <i class="bi bi-x-circle"></i>
+          (click)="cerrarModal()"
+          [disabled]="guardando">
+          Cancelar
         </button>
         <button 
+          type="button" 
           class="btn btn-primary" 
-          (click)="guardarRutina()" 
-          [disabled]="guardando"
-          [title]="modoEdicion ? 'Guardar Cambios' : 'Crear Rutina'">
-          <span *ngIf="!guardando">
-            <i class="bi bi-check-circle"></i>
-          </span>
-          <span *ngIf="guardando">
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-          </span>
+          (click)="guardarRutina()"
+          [disabled]="guardando">
+          <span *ngIf="guardando" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          Guardar Rutina
         </button>
       </div>
     </div>

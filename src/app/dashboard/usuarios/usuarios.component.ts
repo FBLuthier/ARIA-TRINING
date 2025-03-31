@@ -1,5 +1,5 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ViewChild, AfterViewInit, PLATFORM_ID, Inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RutinaService } from '../rutinas/services/rutina.service';
@@ -7,7 +7,8 @@ import { VerRutinaComponent } from '../rutinas/ver-rutina/ver-rutina.component';
 import { CrearRutinasComponent } from '../rutinas/crear-rutinas/crear-rutinas.component';
 import { HistorialRutinasComponent } from '../rutinas/historial-rutinas/historial-rutinas.component';
 
-declare var bootstrap: any;
+// Importación dinámica de Bootstrap
+let bootstrap: any;
 
 @Component({
   selector: 'app-usuarios',
@@ -136,22 +137,42 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   // ID de la rutina seleccionada
   rutinaSeleccionadaId: number | null = null;
 
-  constructor(private router: Router, private rutinaService: RutinaService) { }
+  // Variable para verificar si estamos en el navegador
+  private isBrowser: boolean;
 
-  ngOnInit(): void {
+  constructor(
+    private router: Router,
+    private rutinaService: RutinaService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
+  async ngOnInit(): Promise<void> {
+    // Inicializar bootstrap para los modales solo en el navegador
+    if (this.isBrowser) {
+      try {
+        bootstrap = await import('bootstrap');
+      } catch (error) {
+        console.error('Error al cargar Bootstrap:', error);
+      }
+    }
+    
     // Inicializar los usuarios filtrados con todos los usuarios
     this.usuariosFiltrados = [...this.usuarios];
   }
 
   ngAfterViewInit(): void {
-    // Inicializar los dropdowns de Bootstrap manualmente después de que la vista se haya cargado
-    setTimeout(() => {
+    // Inicializar dropdowns solo en el navegador
+    if (this.isBrowser && bootstrap) {
       this.inicializarDropdowns();
-    }, 500);
+    }
   }
 
   // Método para inicializar los dropdowns de Bootstrap manualmente
   inicializarDropdowns(): void {
+    if (!this.isBrowser || !bootstrap) return;
+    
     const dropdownElementList = document.querySelectorAll('.dropdown-toggle');
     dropdownElementList.forEach(dropdownToggleEl => {
       new bootstrap.Dropdown(dropdownToggleEl);
@@ -212,6 +233,8 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   
   // Método para abrir/cerrar el panel de filtros
   toggleFiltros(): void {
+    if (!this.isBrowser) return;
+    
     const filtrosPanel = document.getElementById('filtrosPanel');
     if (filtrosPanel) {
       if (filtrosPanel.classList.contains('d-none')) {
@@ -249,88 +272,176 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
 
   // Método para abrir el modal de crear usuario
   abrirModalCrearUsuario(): void {
+    if (!this.isBrowser || !bootstrap) return;
+    
     const modalElement = document.getElementById('crearUsuarioModal');
     if (modalElement) {
-      // Configurar opciones del modal para manejar eventos de cierre
-      const modalOptions = {
-        backdrop: 'static', // Evita que se cierre al hacer clic fuera
-        keyboard: false     // Evita que se cierre con la tecla Escape
-      };
-      
-      const modal = new bootstrap.Modal(modalElement, modalOptions);
-      
-      // Agregar listener para el evento hidden.bs.modal
-      modalElement.addEventListener('hidden.bs.modal', () => {
-        // Asegurarse de que se limpie todo correctamente
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-        document.body.style.paddingRight = '';
-        
-        const backdrop = document.querySelector('.modal-backdrop');
-        if (backdrop) {
-          backdrop.remove();
-        }
-      });
-      
+      const modal = new bootstrap.Modal(modalElement);
       modal.show();
     }
   }
 
   // Método para cerrar el modal de crear usuario
   cerrarModalCrearUsuario(): void {
-    // Cerrar el modal
+    if (!this.isBrowser || !bootstrap) return;
+    
     const modalElement = document.getElementById('crearUsuarioModal');
     if (modalElement) {
-      try {
-        const modalInstance = bootstrap.Modal.getInstance(modalElement);
-        if (modalInstance) {
-          modalInstance.hide();
-        }
-      } catch (error) {
-        console.error('Error al cerrar el modal:', error);
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
       }
-      
-      // Limpiar manualmente los elementos del modal
-      this.limpiarElementosModal();
     }
-    
-    // Limpiar el usuario que se está editando
-    this.usuarioEditando = null;
   }
-  
-  // Método para limpiar los elementos del modal
-  limpiarElementosModal(): void {
-    // Remover clases y estilos del body
-    document.body.classList.remove('modal-open');
-    document.body.style.removeProperty('overflow');
-    document.body.style.removeProperty('padding-right');
+
+  // Métodos para modales de rutinas
+  abrirModalCrearRutina(usuario?: any): void {
+    if (!this.isBrowser || !bootstrap) return;
     
-    // Remover el backdrop
-    const backdrops = document.querySelectorAll('.modal-backdrop');
-    backdrops.forEach(backdrop => backdrop.remove());
-    
-    // Asegurarse de que el modal esté oculto
-    const modalElement = document.getElementById('crearUsuarioModal');
+    this.usuarioSeleccionado = usuario || null;
+    const modalElement = document.getElementById('crearRutinaModal');
     if (modalElement) {
-      modalElement.classList.remove('show');
-      modalElement.style.display = 'none';
-      modalElement.setAttribute('aria-hidden', 'true');
-      modalElement.removeAttribute('aria-modal');
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
     }
   }
 
-  // Método para abrir el modal de crear rutina
-  abrirModalCrearRutina(usuarioId: number): void {
-    console.log('Abriendo modal para crear rutina para el usuario ID:', usuarioId);
-    // Aquí iría la lógica para abrir el modal de crear rutina
-    this.router.navigate(['/rutinas/crear', usuarioId]);
+  cerrarModalCrearRutina(): void {
+    if (!this.isBrowser || !bootstrap) return;
+    
+    const modalElement = document.getElementById('crearRutinaModal');
+    if (modalElement) {
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    }
   }
 
-  // Método para abrir el modal de editar rutina
-  abrirModalEditarRutina(usuarioId: number): void {
-    console.log('Abriendo modal para editar rutina del usuario ID:', usuarioId);
-    // Aquí iría la lógica para abrir el modal de editar rutina
-    this.router.navigate(['/rutinas/editar', usuarioId]);
+  abrirModalEditarRutina(usuario: any, rutinaId: number): void {
+    if (!this.isBrowser || !bootstrap) return;
+    
+    this.usuarioSeleccionado = usuario;
+    this.rutinaSeleccionadaId = rutinaId;
+    const modalElement = document.getElementById('editarRutinaModal');
+    if (modalElement) {
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
+    }
+  }
+
+  cerrarModalEditarRutina(): void {
+    if (!this.isBrowser || !bootstrap) return;
+    
+    const modalElement = document.getElementById('editarRutinaModal');
+    if (modalElement) {
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    }
+  }
+
+  abrirModalVerRutina(usuario: any, rutinaId: number): void {
+    if (!this.isBrowser || !bootstrap) return;
+    
+    this.usuarioSeleccionado = usuario;
+    this.rutinaSeleccionadaId = rutinaId;
+    const modalElement = document.getElementById('verRutinaModal');
+    if (modalElement) {
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
+    }
+  }
+
+  cerrarModalVerRutina(): void {
+    if (!this.isBrowser || !bootstrap) return;
+    
+    const modalElement = document.getElementById('verRutinaModal');
+    if (modalElement) {
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    }
+  }
+
+  cerrarModalHistorialRutinas(): void {
+    this.mostrarModalHistorialRutinas = false;
+    this.usuarioSeleccionado = null;
+  }
+
+  // Métodos para manejar las rutinas
+  crearRutina(usuario: any): void {
+    console.log('Método crearRutina ejecutado para usuario:', usuario.id, usuario.primerNombre, usuario.primerApellido);
+    this.abrirModalCrearRutina(usuario);
+  }
+
+  editarRutina(usuario: any): void {
+    console.log('Método editarRutina ejecutado para usuario:', usuario.id, usuario.primerNombre, usuario.primerApellido);
+    
+    this.rutinaService.obtenerRutinaActiva(usuario.id).subscribe({
+      next: (rutina) => {
+        if (rutina) {
+          this.abrirModalEditarRutina(usuario, rutina.id);
+        } else {
+          console.error('No se encontró una rutina activa para este usuario');
+          alert('No se encontró una rutina activa para este usuario');
+        }
+      },
+      error: (error) => {
+        console.error('Error al obtener la rutina activa:', error);
+        alert('Error al obtener la rutina activa');
+      }
+    });
+  }
+
+  archivarRutina(usuario: any): void {
+    console.log('Método archivarRutina ejecutado para usuario:', usuario.id, usuario.primerNombre, usuario.primerApellido);
+    
+    if (confirm(`¿Está seguro que desea archivar la rutina de ${usuario.primerNombre} ${usuario.primerApellido}?`)) {
+      this.rutinaService.archivarRutina(usuario.id).subscribe({
+        next: (resultado) => {
+          if (resultado) {
+            console.log('Rutina archivada correctamente');
+            alert('Rutina archivada correctamente');
+            // Actualizar el estado del usuario
+            usuario.tieneRutina = false;
+          } else {
+            console.error('No se pudo archivar la rutina');
+            alert('No se pudo archivar la rutina');
+          }
+        },
+        error: (error) => {
+          console.error('Error al archivar la rutina:', error);
+          alert('Error al archivar la rutina');
+        }
+      });
+    }
+  }
+
+  verHistorialRutinas(usuario: any): void {
+    console.log('Método verHistorialRutinas ejecutado para usuario:', usuario.id, usuario.primerNombre, usuario.primerApellido);
+    // Aquí se implementaría la lógica para mostrar el historial de rutinas
+  }
+
+  verRutina(usuario: any): void {
+    console.log('Método verRutina ejecutado para usuario:', usuario.id, usuario.primerNombre, usuario.primerApellido);
+    
+    this.rutinaService.obtenerRutinaActiva(usuario.id).subscribe({
+      next: (rutina) => {
+        if (rutina) {
+          this.abrirModalVerRutina(usuario, rutina.id);
+        } else {
+          console.error('No se encontró una rutina activa para este usuario');
+          alert('No se encontró una rutina activa para este usuario');
+        }
+      },
+      error: (error) => {
+        console.error('Error al obtener la rutina activa:', error);
+        alert('Error al obtener la rutina activa');
+      }
+    });
   }
   
   // Método para agregar un nuevo usuario a la lista
@@ -397,118 +508,6 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     this.usuarios = this.usuarios.filter(u => u.id !== usuario.id);
     // Mostrar mensaje de éxito
     alert(`Usuario ${usuario.primerNombre} ${usuario.primerApellido} eliminado correctamente`);
-  }
-
-  // Métodos para manejar las rutinas
-  crearRutina(usuario: any): void {
-    console.log('Método crearRutina ejecutado para usuario:', usuario.id, usuario.primerNombre, usuario.primerApellido);
-    this.usuarioSeleccionado = usuario;
-    this.mostrarModalCrearRutina = true;
-    // Alternativa: navegar a la página de crear rutina
-    // this.router.navigate(['/dashboard/rutinas/crear'], { queryParams: { usuarioId: usuario.id } });
-  }
-
-  editarRutina(usuario: any): void {
-    console.log('Método editarRutina ejecutado para usuario:', usuario.id, usuario.primerNombre, usuario.primerApellido);
-    
-    // Primero obtenemos la rutina activa del usuario
-    this.rutinaService.obtenerRutinaActiva(usuario.id).subscribe({
-      next: (rutina) => {
-        if (rutina) {
-          this.usuarioSeleccionado = usuario;
-          this.rutinaSeleccionadaId = rutina.id;
-          this.mostrarModalEditarRutina = true;
-          // Alternativa: navegar a la página de editar rutina
-          // this.router.navigate(['/dashboard/rutinas/editar', rutina.id]);
-        } else {
-          console.error('No se encontró una rutina activa para este usuario');
-          alert('No se encontró una rutina activa para este usuario');
-        }
-      },
-      error: (error) => {
-        console.error('Error al obtener la rutina activa:', error);
-        alert('Error al obtener la rutina activa');
-      }
-    });
-  }
-
-  archivarRutina(usuario: any): void {
-    console.log('Método archivarRutina ejecutado para usuario:', usuario.id, usuario.primerNombre, usuario.primerApellido);
-    
-    if (confirm(`¿Está seguro que desea archivar la rutina de ${usuario.primerNombre} ${usuario.primerApellido}?`)) {
-      this.rutinaService.archivarRutina(usuario.id).subscribe({
-        next: (resultado) => {
-          if (resultado) {
-            console.log('Rutina archivada correctamente');
-            alert('Rutina archivada correctamente');
-            // Actualizar el estado del usuario
-            usuario.tieneRutina = false;
-          } else {
-            console.error('No se pudo archivar la rutina');
-            alert('No se pudo archivar la rutina');
-          }
-        },
-        error: (error) => {
-          console.error('Error al archivar la rutina:', error);
-          alert('Error al archivar la rutina');
-        }
-      });
-    }
-  }
-
-  verHistorialRutinas(usuario: any): void {
-    console.log('Método verHistorialRutinas ejecutado para usuario:', usuario.id, usuario.primerNombre, usuario.primerApellido);
-    this.usuarioSeleccionado = usuario;
-    this.mostrarModalHistorialRutinas = true;
-    // Alternativa: navegar a la página de historial de rutinas
-    // this.router.navigate(['/dashboard/rutinas/historial'], { queryParams: { usuarioId: usuario.id } });
-  }
-
-  verRutina(usuario: any): void {
-    console.log('Método verRutina ejecutado para usuario:', usuario.id, usuario.primerNombre, usuario.primerApellido);
-    
-    // Primero obtenemos la rutina activa del usuario
-    this.rutinaService.obtenerRutinaActiva(usuario.id).subscribe({
-      next: (rutina) => {
-        if (rutina) {
-          this.usuarioSeleccionado = usuario;
-          this.rutinaSeleccionadaId = rutina.id;
-          this.mostrarModalVerRutina = true;
-          // Alternativa: navegar a la página de ver rutina
-          // this.router.navigate(['/dashboard/rutinas/ver', rutina.id]);
-        } else {
-          console.error('No se encontró una rutina activa para este usuario');
-          alert('No se encontró una rutina activa para este usuario');
-        }
-      },
-      error: (error) => {
-        console.error('Error al obtener la rutina activa:', error);
-        alert('Error al obtener la rutina activa');
-      }
-    });
-  }
-  
-  // Métodos para cerrar los modales de rutina
-  cerrarModalVerRutina(): void {
-    this.mostrarModalVerRutina = false;
-    this.usuarioSeleccionado = null;
-    this.rutinaSeleccionadaId = null;
-  }
-  
-  cerrarModalCrearRutina(): void {
-    this.mostrarModalCrearRutina = false;
-    this.usuarioSeleccionado = null;
-  }
-  
-  cerrarModalEditarRutina(): void {
-    this.mostrarModalEditarRutina = false;
-    this.usuarioSeleccionado = null;
-    this.rutinaSeleccionadaId = null;
-  }
-  
-  cerrarModalHistorialRutinas(): void {
-    this.mostrarModalHistorialRutinas = false;
-    this.usuarioSeleccionado = null;
   }
 
   /**

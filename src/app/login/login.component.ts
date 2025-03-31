@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, PLATFORM_ID, Inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../services/api.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -15,8 +15,15 @@ export class LoginComponent {
   credentials = { username: '', password: '' }; // Almacena las credenciales del usuario
   errorMessage = ''; // Mensaje de error si las credenciales son incorrectas
   loading = false; // Indica si se está procesando la solicitud
+  private isBrowser: boolean;
 
-  constructor(private apiService: ApiService, private router: Router) {}
+  constructor(
+    private apiService: ApiService, 
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   // Método para iniciar sesión
   login() {

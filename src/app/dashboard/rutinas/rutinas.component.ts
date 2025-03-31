@@ -33,6 +33,11 @@ export class RutinasComponent implements OnInit {
   resultadosBusqueda: Usuario[] = [];
   mostrarResultados: boolean = false;
   
+  // Propiedades para el modal de selección de usuario
+  terminoBusquedaModal: string = '';
+  resultadosBusquedaModal: Usuario[] = [];
+  usuarioSeleccionadoModal: Usuario | null = null;
+  
   // Propiedades para la gestión de modales
   mostrarCrearRutina: boolean = false;
   mostrarVerRutina: boolean = false;
@@ -178,11 +183,22 @@ export class RutinasComponent implements OnInit {
 
   // Métodos para gestionar rutinas
   crearNuevaRutina(): void {
-    // Primero mostramos la pantalla de selección de usuario
-    this.limpiarSeleccion(); // Limpiamos la selección actual para empezar de cero
-    this.mostrarSeleccionUsuario = true;
-    this.mostrarCrearRutina = false;
-    this.mostrarVerRutina = false;
+    // Si ya hay un usuario seleccionado, mostrar directamente el componente de creación
+    if (this.usuarioSeleccionado && this.usuarioIdSeleccionado) {
+      // Cerramos cualquier modal que pudiera estar abierto
+      this.mostrarSeleccionUsuario = false;
+      
+      // Mostrar el componente de creación de rutina directamente
+      this.mostrarCrearRutina = true;
+      this.mostrarVerRutina = false;
+      this.rutinaSeleccionada = null;
+      this.modoEdicion = false;
+    } else {
+      // Si no hay usuario seleccionado, mostrar el modal de selección
+      this.mostrarSeleccionUsuario = true;
+      this.mostrarCrearRutina = false;
+      this.mostrarVerRutina = false;
+    }
   }
 
   // Método para continuar con la creación de rutina después de seleccionar usuario
@@ -271,5 +287,37 @@ export class RutinasComponent implements OnInit {
   obtenerNombreUsuario(usuarioId: number): string {
     const usuario = this.usuarios.find(u => u.id === usuarioId);
     return usuario ? `${usuario.primerNombre} ${usuario.primerApellido}` : 'Usuario Desconocido';
+  }
+
+  // Método para buscar usuarios en el modal
+  buscarUsuariosModal(): void {
+    if (this.terminoBusquedaModal.trim() === '') {
+      this.resultadosBusquedaModal = [];
+      return;
+    }
+    
+    this.resultadosBusquedaModal = this.usuarios.filter(usuario => {
+      const nombreCompleto = `${usuario.primerNombre} ${usuario.primerApellido}`.toLowerCase();
+      return nombreCompleto.includes(this.terminoBusquedaModal.toLowerCase());
+    });
+  }
+  
+  // Método para seleccionar un usuario en el modal
+  seleccionarUsuarioModal(usuario: Usuario): void {
+    this.usuarioSeleccionadoModal = usuario;
+  }
+  
+  // Método para confirmar la selección de usuario en el modal
+  confirmarSeleccionUsuario(): void {
+    if (this.usuarioSeleccionadoModal) {
+      this.usuarioSeleccionado = this.usuarioSeleccionadoModal;
+      this.usuarioIdSeleccionado = this.usuarioSeleccionadoModal.id;
+      this.mostrarSeleccionUsuario = false;
+      
+      // Redirigir a la creación de rutina
+      this.router.navigate(['dashboard', 'rutinas', 'crear'], {
+        queryParams: { usuarioId: this.usuarioIdSeleccionado }
+      });
+    }
   }
 }

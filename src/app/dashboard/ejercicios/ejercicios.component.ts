@@ -1,8 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule} from '@angular/common';
+import { Component, OnInit, PLATFORM_ID, Inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { SafePipe } from '../../shared/pipes/safe.pipe';
+
+// Importación dinámica de Bootstrap
+let bootstrap: any;
 
 interface Ejercicio {
   id: number;
@@ -265,7 +268,23 @@ export class EjerciciosComponent implements OnInit {
     }
   ];
 
-  ngOnInit(): void {
+  ejercicioSeleccionado: any = null;
+  private isBrowser: boolean;
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
+  async ngOnInit(): Promise<void> {
+    // Inicializar bootstrap para los modales solo en el navegador
+    if (this.isBrowser) {
+      try {
+        bootstrap = await import('bootstrap');
+      } catch (error) {
+        console.error('Error al cargar Bootstrap:', error);
+      }
+    }
+    
     // Inicializar la lista de todos los ejercicios
     this.inicializarEjercicios();
     
@@ -481,5 +500,66 @@ export class EjerciciosComponent implements OnInit {
   // Método para expandir/colapsar las indicaciones de un ejercicio
   toggleIndicaciones(ejercicio: Ejercicio): void {
     ejercicio.indicacionesExpandidas = !ejercicio.indicacionesExpandidas;
+  }
+
+  // Métodos para modales de ejercicios
+  abrirModalCrearEjercicio(): void {
+    if (!this.isBrowser || !bootstrap) return;
+    
+    const modalElement = document.getElementById('crearEjercicioModal');
+    if (modalElement) {
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
+      
+      // Limpiar al cerrar
+      modalElement.addEventListener('hidden.bs.modal', () => {
+        // Limpiar campos del formulario si es necesario
+      }, { once: true });
+    }
+  }
+
+  abrirModalEditarEjercicio(ejercicio: any): void {
+    if (!this.isBrowser || !bootstrap) return;
+    
+    this.ejercicioSeleccionado = ejercicio;
+    const modalElement = document.getElementById('editarEjercicioModal');
+    if (modalElement) {
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
+      
+      // Limpiar al cerrar
+      modalElement.addEventListener('hidden.bs.modal', () => {
+        this.ejercicioSeleccionado = null;
+      }, { once: true });
+    }
+  }
+
+  verDetallesEjercicio(ejercicio: any): void {
+    if (!this.isBrowser || !bootstrap) return;
+    
+    this.ejercicioSeleccionado = ejercicio;
+    const modalElement = document.getElementById('detallesEjercicioModal');
+    if (modalElement) {
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
+      
+      // Limpiar al cerrar
+      modalElement.addEventListener('hidden.bs.modal', () => {
+        this.ejercicioSeleccionado = null;
+      }, { once: true });
+    }
+  }
+  
+  // Método para cerrar modales
+  cerrarModal(modalId: string): void {
+    if (!this.isBrowser || !bootstrap) return;
+    
+    const modalElement = document.getElementById(modalId);
+    if (modalElement) {
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    }
   }
 }

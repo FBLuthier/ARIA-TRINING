@@ -12,20 +12,25 @@ declare var bootstrap: any; // Declaración para usar Bootstrap JS
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
-  // Estado de los menús - todos colapsados por defecto
-  menuState = {
+  // Estado de los menús (abierto/cerrado)
+  menuState: { [key: string]: boolean } = {
     administracion: false,
-    entrenamiento: false,
+    parametrizacion: false
+  };
+
+  // Estado de los submenús (abierto/cerrado)
+  submenuState: { [key: string]: boolean } = {
     ejercicios: false,
     fases: false,
-    rutinas: false,
-    parametrizacion: false
+    rutinas: false
   };
 
   constructor(private router: Router) {}
 
   ngOnInit() {
     // Inicialización del componente
+    // Determinar qué menú debe estar abierto según la ruta actual
+    this.setInitialMenuState();
   }
 
   ngAfterViewInit() {
@@ -38,16 +43,42 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Método para alternar la visibilidad de un menú
-  toggleMenu(menu: string) {
-    if (this.menuState.hasOwnProperty(menu)) {
-      (this.menuState as any)[menu] = !(this.menuState as any)[menu];
+  // Método para determinar el estado inicial de los menús según la ruta actual
+  setInitialMenuState() {
+    const currentUrl = this.router.url;
+    
+    if (currentUrl.includes('/dashboard/usuarios')) {
+      this.menuState['administracion'] = true;
+    } else if (currentUrl.includes('/dashboard/ejercicios')) {
+      this.menuState['parametrizacion'] = true;
+      this.submenuState['ejercicios'] = true;
+    } else if (currentUrl.includes('/dashboard/fases')) {
+      this.menuState['parametrizacion'] = true;
+      this.submenuState['fases'] = true;
+    } else if (currentUrl.includes('/dashboard/rutinas')) {
+      this.menuState['parametrizacion'] = true;
+      this.submenuState['rutinas'] = true;
     }
   }
 
+  // Método para alternar el estado de un menú principal
+  toggleMenu(menuKey: string) {
+    this.menuState[menuKey] = !this.menuState[menuKey];
+  }
+
   // Método para verificar si un menú está abierto
-  isMenuOpen(menu: string): boolean {
-    return (this.menuState as any)[menu] === true;
+  isMenuOpen(menuKey: string): boolean {
+    return this.menuState[menuKey];
+  }
+
+  // Método para alternar el estado de un submenú
+  toggleSubmenu(submenuKey: string) {
+    this.submenuState[submenuKey] = !this.submenuState[submenuKey];
+  }
+
+  // Método para verificar si un submenú está abierto
+  isSubmenuOpen(submenuKey: string): boolean {
+    return this.submenuState[submenuKey];
   }
 
   // Método para cerrar sesión

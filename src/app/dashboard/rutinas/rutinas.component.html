@@ -45,24 +45,6 @@
                 </span>
               </div>
             </div>
-            <div class="col-md-6 text-end">
-              <!-- Botones de filtro y acción -->
-              <div class="btn-group">
-                <!-- Botón de crear rutina cuando hay un usuario seleccionado (versión móvil) -->
-                <button *ngIf="usuarioSeleccionado" type="button" class="btn btn-success d-md-none" (click)="crearNuevaRutina()">
-                  <i class="bi bi-plus-circle"></i>
-                </button>
-                <button type="button" class="btn btn-outline-primary" (click)="mostrarRutinasActivas()">
-                  <i class="bi bi-check-circle"></i>
-                </button>
-                <button type="button" class="btn btn-outline-secondary" (click)="mostrarRutinasArchivadas()">
-                  <i class="bi bi-archive"></i>
-                </button>
-                <button type="button" class="btn btn-outline-success">
-                  <i class="bi bi-file-earmark-excel"></i>
-                </button>
-              </div>
-            </div>
           </div>
           
           <!-- Spinner de carga -->
@@ -140,8 +122,11 @@
           </div>
           
           <!-- Mensaje cuando no hay rutinas para el usuario seleccionado -->
-          <div *ngIf="!cargando && !error && usuarioIdSeleccionado && rutinas.length === 0" class="alert alert-info">
-            <i class="bi bi-info-circle me-2"></i>No se encontraron rutinas para este usuario. Haga clic en "Crear Rutina" para añadir una nueva.
+          <div *ngIf="!cargando && !error && usuarioIdSeleccionado && rutinas.length === 0" class="alert alert-info text-center">
+            <p><i class="bi bi-info-circle me-2"></i>No se encontraron rutinas para este usuario. Haga clic en "Crear Rutina" para añadir una nueva.</p>
+            <button class="btn btn-primary mt-2" (click)="crearNuevaRutina()">
+              <i class="bi bi-plus-circle me-2"></i>Crear Rutina
+            </button>
           </div>
         </div>
       </div>
@@ -170,46 +155,36 @@
               type="text" 
               class="form-control" 
               placeholder="Buscar usuario..." 
-              [(ngModel)]="terminoBusqueda"
-              (input)="buscarUsuarios()"
+              [(ngModel)]="terminoBusquedaModal"
+              (input)="buscarUsuariosModal()"
               autocomplete="off">
           </div>
           
-          <!-- Lista de resultados de búsqueda -->
-          <div class="position-relative">
-            <div *ngIf="resultadosBusqueda.length > 0 && mostrarResultados" class="position-absolute top-100 start-0 w-100 shadow-sm bg-white border rounded z-1 mt-1">
-              <ul class="list-group list-group-flush">
-                <li *ngFor="let usuario of resultadosBusqueda" 
-                    class="list-group-item list-group-item-action py-2 cursor-pointer" 
-                    (click)="seleccionarUsuarioBuscado(usuario)">
-                  {{ usuario.primerNombre }} {{ usuario.primerApellido }}
-                </li>
-              </ul>
-            </div>
+          <!-- Lista de resultados de búsqueda en el modal -->
+          <div *ngIf="resultadosBusquedaModal.length > 0" class="mt-2">
+            <ul class="list-group">
+              <li *ngFor="let usuario of resultadosBusquedaModal" 
+                  class="list-group-item list-group-item-action py-2 cursor-pointer" 
+                  (click)="seleccionarUsuarioModal(usuario)">
+                {{ usuario.primerNombre }} {{ usuario.primerApellido }}
+              </li>
+            </ul>
+          </div>
+          
+          <!-- Mensaje cuando no hay resultados -->
+          <div *ngIf="terminoBusquedaModal && resultadosBusquedaModal.length === 0" class="alert alert-info mt-2">
+            No se encontraron usuarios que coincidan con la búsqueda.
           </div>
         </div>
         
-        <!-- Usuario seleccionado -->
-        <div *ngIf="usuarioSeleccionado" class="alert alert-success">
-          <strong>Usuario seleccionado:</strong> {{ usuarioSeleccionado.primerNombre }} {{ usuarioSeleccionado.primerApellido }}
-        </div>
-        
-        <!-- Mensaje si no hay resultados -->
-        <div *ngIf="terminoBusqueda && resultadosBusqueda.length === 0 && mostrarResultados" class="alert alert-info">
-          No se encontraron usuarios que coincidan con la búsqueda.
+        <!-- Usuario seleccionado en el modal -->
+        <div *ngIf="usuarioSeleccionadoModal" class="alert alert-success">
+          Usuario seleccionado: <strong>{{ usuarioSeleccionadoModal.primerNombre }} {{ usuarioSeleccionadoModal.primerApellido }}</strong>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cancelarSeleccionUsuario()">
-          <i class="bi bi-x-circle"></i>
-        </button>
-        <button 
-          type="button" 
-          class="btn btn-primary" 
-          [disabled]="!usuarioSeleccionado"
-          (click)="continuarCreacionRutina()">
-          <i class="bi bi-arrow-right-circle"></i>
-        </button>
+        <button type="button" class="btn btn-secondary" (click)="cancelarSeleccionUsuario()">Cancelar</button>
+        <button type="button" class="btn btn-primary" [disabled]="!usuarioSeleccionadoModal" (click)="confirmarSeleccionUsuario()">Confirmar</button>
       </div>
     </div>
   </div>
