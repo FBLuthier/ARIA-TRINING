@@ -1,0 +1,201 @@
+<div class="container-fluid">
+  <div class="row mb-3">
+    <div class="col-12">
+      <h2 class="mb-0">Gestión de Deportes</h2>
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="Buscar deportes..." [(ngModel)]="terminoBusqueda" (input)="buscarDeportes()">
+        <button class="btn btn-outline-secondary" type="button" (click)="buscarDeportes()">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+    </div>
+    <div class="col-md-6 text-end">
+      <button class="btn btn-primary" (click)="abrirModalCrearDeporte()">
+        <i class="bi bi-plus-circle me-1"></i> Crear Deporte
+      </button>
+    </div>
+  </div>
+
+  <!-- Mensaje de carga -->
+  <div *ngIf="isLoading" class="row mb-3">
+    <div class="col-12">
+      <div class="alert alert-info">
+        <i class="bi bi-hourglass-split me-2"></i> Cargando deportes...
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="errorMessage && !isLoading" class="row mb-3">
+    <div class="col-12">
+      <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Información de deportes -->
+  <div *ngIf="!isLoading" class="row mb-3">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-light">
+          <div class="row">
+            <div class="col-md-6">
+              <h5 class="mb-0">Total: {{ deportesFiltrados.length }} deportes</h5>
+            </div>
+            <div class="col-md-6 text-end">
+              <button class="btn btn-sm btn-outline-primary" (click)="cargarDeportes()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div *ngIf="deportesFiltrados.length === 0 && !errorMessage" class="alert alert-warning m-3">
+            No se encontraron deportes. <a href="javascript:void(0)" (click)="inicializarDeportes()">¿Desea inicializar la tabla con deportes de ejemplo?</a>
+          </div>
+          <table *ngIf="deportesFiltrados.length > 0" class="table table-hover table-striped mb-0">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let deporte of deportesFiltrados; let i = index">
+                <td>{{ deporte.id }}</td>
+                <td>{{ deporte.nombre }}</td>
+                <td>{{ deporte.descripcion }}</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-info" (click)="verDetallesDeporte(deporte)">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" (click)="abrirModalEditarDeporte(deporte)">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" (click)="confirmarEliminarDeporte(deporte)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para crear deporte -->
+<div class="modal fade" id="modalCrearDeporte" tabindex="-1" aria-labelledby="modalCrearDeporteLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCrearDeporteLabel">Crear Nuevo Deporte</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label for="nombreDeporte" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombreDeporte" [(ngModel)]="deporteActual.nombre" name="nombre" required>
+          </div>
+          <div class="mb-3">
+            <label for="descripcionDeporte" class="form-label">Descripción</label>
+            <textarea class="form-control" id="descripcionDeporte" rows="3" [(ngModel)]="deporteActual.descripcion" name="descripcion"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="crearDeporte()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para editar deporte -->
+<div class="modal fade" id="modalEditarDeporte" tabindex="-1" aria-labelledby="modalEditarDeporteLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarDeporteLabel">Editar Deporte</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label for="nombreDeporteEdit" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombreDeporteEdit" [(ngModel)]="deporteActual.nombre" name="nombre" required>
+          </div>
+          <div class="mb-3">
+            <label for="descripcionDeporteEdit" class="form-label">Descripción</label>
+            <textarea class="form-control" id="descripcionDeporteEdit" rows="3" [(ngModel)]="deporteActual.descripcion" name="descripcion"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="actualizarDeporte()">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para ver detalles del deporte -->
+<div class="modal fade" id="modalDetallesDeporte" tabindex="-1" aria-labelledby="modalDetallesDeporteLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalDetallesDeporteLabel">Detalles del Deporte</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <h6>ID</h6>
+          <p>{{ deporteActual.id }}</p>
+        </div>
+        <div class="mb-3">
+          <h6>Nombre</h6>
+          <p>{{ deporteActual.nombre }}</p>
+        </div>
+        <div class="mb-3">
+          <h6>Descripción</h6>
+          <p>{{ deporteActual.descripcion || 'Sin descripción' }}</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmación para eliminar deporte -->
+<div class="modal fade" id="modalConfirmarEliminar" tabindex="-1" aria-labelledby="modalConfirmarEliminarLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalConfirmarEliminarLabel">Confirmar Eliminación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>¿Está seguro que desea eliminar el deporte <strong>{{ deporteActual.nombre }}</strong>?</p>
+        <p class="text-danger">Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger" (click)="eliminarDeporte()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>

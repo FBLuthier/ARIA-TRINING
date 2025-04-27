@@ -12,6 +12,10 @@ import { EditarEjercicioComponent } from './dashboard/ejercicios/editar-ejercici
 import { FasesComponent } from './dashboard/fases/fases.component';
 import { CrearFaseComponent } from './dashboard/fases/crear-fase/crear-fase.component';
 import { CrearRutinasComponent } from './dashboard/rutinas/crear-rutinas/crear-rutinas.component';
+import { DbTestComponent } from './components/db-test/db-test.component';
+// Importamos los nuevos componentes de herramientas
+import { DeportesComponent } from './dashboard/herramientas/deportes/deportes.component';
+import { PosicionesComponent } from './dashboard/herramientas/posiciones/posiciones.component';
 
 export const routes: Routes = [
   {
@@ -71,12 +75,33 @@ export const routes: Routes = [
       },
       {
         path: 'rutinas/crear',
-        component: RutinasComponent,
+        component: CrearRutinasComponent,
         data: { accion: 'crear' }
+      },
+      
+      // Ruta para probar la conexión a la base de datos
+      {
+        path: 'db-test',
+        component: DbTestComponent
+      },
+      
+      // Rutas para herramientas - Deportes y Posiciones
+      {
+        path: 'herramientas/deportes',
+        component: DeportesComponent
+      },
+      {
+        path: 'herramientas/posiciones',
+        component: PosicionesComponent
       }
       
       // Nota: Las rutas de Parametrización se definirán más adelante
     ]
+  },
+  // Ruta independiente para probar la conexión a la base de datos
+  {
+    path: 'db-test',
+    component: DbTestComponent
   },
   // Ruta de redirección para rutas no encontradas
   {

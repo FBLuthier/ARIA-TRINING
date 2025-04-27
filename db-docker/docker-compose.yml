@@ -1,0 +1,17 @@
+services:
+  # Servicio de base de datos MySQL
+  db:
+    image: mysql:8.0
+    container_name: lucia_entrenadora_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password      # Contraseña para el usuario root
+      MYSQL_DATABASE: lucia_entrenadora_db    # Nombre de la base de datos
+      MYSQL_USER: lucia_user                  # Usuario para la base de datos
+      MYSQL_PASSWORD: lucia_password          # Contraseña para el usuario
+    ports:
+      - "3306:3306"                           # Mapeo de puertos (puerto_host:puerto_contenedor)
+    volumes:
+      - ./mysql/data:/var/lib/mysql           # Persistencia de datos
+      - ./mysql/init:/docker-entrypoint-initdb.d  # Scripts de inicialización
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci

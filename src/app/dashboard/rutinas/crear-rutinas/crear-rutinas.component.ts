@@ -25,6 +25,8 @@ export class CrearRutinasComponent implements OnInit {
     usuarioId: 0,
     nombre: '',
     fechaCreacion: new Date(),
+    fechaModificacion: new Date(),
+    activa: true,
     dias: []
   };
   @Input() modoEdicion: boolean = false;
@@ -69,6 +71,8 @@ export class CrearRutinasComponent implements OnInit {
         usuarioId: this.usuarioId || (this.usuario?.id || 0),
         nombre: '',
         fechaCreacion: new Date(),
+        fechaModificacion: new Date(),
+        activa: true,
         dias: []
       };
       
@@ -195,13 +199,22 @@ export class CrearRutinasComponent implements OnInit {
       faseRutinaId: this.faseSeleccionada.id,
       ejercicioId: 0,
       nombre: 'Nuevo Ejercicio',
-      descripcion: '',
       numSeries: 3,
       numRepeticiones: 12,
-      descansoSegundos: 60,
-      peso: 0,
-      unidadPeso: 'kg',
-      observaciones: '',
+      tempo: {
+        tipo: 'subida-pausa-bajada',
+        tiempos: [2, 1, 2]
+      },
+      descanso: {
+        minutos: 0,
+        segundos: 60
+      },
+      camara: '',
+      indicaciones: '',
+      series: [],
+      correcciones: '',
+      comentarios: '',
+      videoUrl: '',
       orden: this.faseSeleccionada.ejercicios.length + 1
     };
     

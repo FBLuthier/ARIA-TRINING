@@ -1,0 +1,237 @@
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">Gestión de Posiciones por Deporte</h5>
+          <button class="btn btn-sm btn-light" (click)="abrirModalCrearPosicion()" [disabled]="!deporteSeleccionadoId">
+            <i class="bi bi-plus-circle me-1"></i> Crear Posición
+          </button>
+        </div>
+        <div class="card-body">
+          <!-- Selector de deporte -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label for="deporteSelector" class="form-label">Seleccione un deporte:</label>
+              <select class="form-select" id="deporteSelector" (change)="onDeporteChange($event)">
+                <option value="">-- Seleccione un deporte --</option>
+                <option *ngFor="let deporte of deportes" [value]="deporte.id">{{ deporte.nombre }}</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Mensaje cuando no hay deporte seleccionado -->
+          <div *ngIf="!deporteSeleccionadoId && !isLoading" class="text-center py-5">
+            <i class="bi bi-geo-alt-fill text-muted" style="font-size: 3rem;"></i>
+            <p class="mt-3">Por favor, seleccione un deporte para ver sus posiciones.</p>
+          </div>
+          
+          <!-- Contenido cuando hay deporte seleccionado -->
+          <div *ngIf="deporteSeleccionadoId">
+            <!-- Búsqueda -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <div class="input-group">
+                  <input type="text" class="form-control" placeholder="Buscar posiciones..." [(ngModel)]="terminoBusqueda" (keyup)="buscarPosiciones()">
+                  <button class="btn btn-outline-secondary" type="button" (click)="buscarPosiciones()">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col-md-6 text-end">
+                <span class="text-muted">Total: {{ posicionesFiltradas.length }} posiciones</span>
+              </div>
+            </div>
+
+            <!-- Mensaje de carga -->
+            <div *ngIf="isLoading" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+              </div>
+              <p class="mt-2">Cargando posiciones...</p>
+            </div>
+
+            <!-- Mensaje de error -->
+            <div *ngIf="errorMessage" class="alert alert-danger">
+              {{ errorMessage }}
+            </div>
+            
+            <!-- Mensaje de éxito -->
+            <div *ngIf="successMessage" class="alert alert-success">
+              {{ successMessage }}
+            </div>
+
+            <!-- Tabla de posiciones -->
+            <div *ngIf="!isLoading && posicionesFiltradas.length > 0" class="table-responsive">
+              <table class="table table-striped table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col" class="text-center">ID</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Descripción</th>
+                    <th scope="col" class="text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let posicion of posicionesFiltradas">
+                    <td class="text-center">{{ posicion.id }}</td>
+                    <td>{{ posicion.nombre }}</td>
+                    <td>{{ posicion.descripcion || 'Sin descripción' }}</td>
+                    <td class="text-center">
+                      <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-info" (click)="abrirModalDetallesPosicion(posicion)" title="Ver detalles">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" (click)="abrirModalEditarPosicion(posicion)" title="Editar">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" (click)="abrirModalEliminarPosicion(posicion)" title="Eliminar">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Mensaje cuando no hay posiciones -->
+            <div *ngIf="!isLoading && !errorMessage && posicionesFiltradas.length === 0" class="text-center py-5">
+              <i class="bi bi-geo-alt-fill text-muted" style="font-size: 3rem;"></i>
+              <p class="mt-3">No se encontraron posiciones para este deporte.</p>
+              <button class="btn btn-primary" (click)="abrirModalCrearPosicion()">
+                <i class="bi bi-plus-circle me-1"></i> Crear Nueva Posición
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modales -->
+  <!-- Modal para crear posición -->
+  <div class="modal fade" id="crearPosicionModal" tabindex="-1" aria-labelledby="crearPosicionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="crearPosicionModalLabel">Crear Nueva Posición</h5>
+          <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="cerrarModalCrearPosicion()"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="nombrePosicion" class="form-label">Nombre de la Posición *</label>
+              <input type="text" class="form-control" id="nombrePosicion" [(ngModel)]="posicionActual.nombre" name="nombre" required>
+              <small class="text-muted">Ejemplo: Portero, Delantero, Base, etc.</small>
+            </div>
+            <div class="mb-3">
+              <label for="descripcionPosicion" class="form-label">Descripción</label>
+              <textarea class="form-control" id="descripcionPosicion" rows="3" [(ngModel)]="posicionActual.descripcion" name="descripcion"></textarea>
+              <small class="text-muted">Breve descripción de la posición (opcional)</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Deporte</label>
+              <input type="text" class="form-control" [value]="getNombreDeporte(deporteSeleccionadoId!)" readonly>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModalCrearPosicion()">Cancelar</button>
+          <button type="button" class="btn btn-primary" (click)="crearPosicion()" [disabled]="isLoading">
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            Crear Posición
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para editar posición -->
+  <div class="modal fade" id="editarPosicionModal" tabindex="-1" aria-labelledby="editarPosicionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="editarPosicionModalLabel">Editar Posición</h5>
+          <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="cerrarModalEditarPosicion()"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="editNombrePosicion" class="form-label">Nombre de la Posición *</label>
+              <input type="text" class="form-control" id="editNombrePosicion" [(ngModel)]="posicionActual.nombre" name="nombre" required>
+            </div>
+            <div class="mb-3">
+              <label for="editDescripcionPosicion" class="form-label">Descripción</label>
+              <textarea class="form-control" id="editDescripcionPosicion" rows="3" [(ngModel)]="posicionActual.descripcion" name="descripcion"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Deporte</label>
+              <input type="text" class="form-control" [value]="getNombreDeporte(deporteSeleccionadoId!)" readonly>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModalEditarPosicion()">Cancelar</button>
+          <button type="button" class="btn btn-primary" (click)="actualizarPosicion()" [disabled]="isLoading">
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            Guardar Cambios
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para ver detalles de la posición -->
+  <div class="modal fade" id="detallesPosicionModal" tabindex="-1" aria-labelledby="detallesPosicionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title" id="detallesPosicionModalLabel">Detalles de la Posición</h5>
+          <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="cerrarModalDetallesPosicion()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">{{ posicionActual.nombre }}</h5>
+              <p class="card-text">
+                <strong>ID:</strong> {{ posicionActual.id }}<br>
+                <strong>Descripción:</strong> {{ posicionActual.descripcion || 'Sin descripción' }}<br>
+                <strong>Deporte:</strong> {{ getNombreDeporte(deporteSeleccionadoId!) }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModalDetallesPosicion()">Cerrar</button>
+          <button type="button" class="btn btn-primary" (click)="abrirModalEditarPosicion(posicionActual); cerrarModalDetallesPosicion()">
+            <i class="bi bi-pencil me-1"></i> Editar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para confirmar eliminación de posición -->
+  <div class="modal fade" id="eliminarPosicionModal" tabindex="-1" aria-labelledby="eliminarPosicionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="eliminarPosicionModalLabel">Confirmar Eliminación</h5>
+          <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="cerrarModalEliminarPosicion()"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Está seguro que desea eliminar la posición <strong>{{ posicionActual.nombre }}</strong>?</p>
+          <p class="text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Esta acción no se puede deshacer.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModalEliminarPosicion()">Cancelar</button>
+          <button type="button" class="btn btn-danger" (click)="eliminarPosicion()" [disabled]="isLoading">
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

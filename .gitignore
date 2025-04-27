@@ -42,3 +42,23 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Docker files
+db-docker/mysql/data/
+*.sock
+*.pid
+*.err
+*.log
+*.lock
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Docker volumes
+/db-docker/mysql/data/
+/db-docker/volumes/
+/db-docker/**/*.sock

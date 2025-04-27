@@ -4,7 +4,7 @@
       <div class="card shadow-sm">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0">Gestión de Usuarios</h5>
-          <button class="btn btn-sm btn-light" (click)="abrirModalCrearUsuario()">
+          <button class="btn btn-sm btn-light" (click)="mostrarModalCrearUsuario()">
             <i class="bi bi-plus-circle me-1"></i> Crear Usuario
           </button>
         </div>
@@ -16,15 +16,15 @@
                 <span class="input-group-text bg-light">
                   <i class="bi bi-search"></i>
                 </span>
-                <input type="text" class="form-control" placeholder="Buscar usuario..." [(ngModel)]="terminoBusqueda" (keyup)="buscarUsuarios()">
-                <button class="btn btn-outline-secondary" type="button" (click)="buscarUsuarios()">
+                <input type="text" class="form-control" placeholder="Buscar usuario..." [(ngModel)]="busqueda.termino" (keyup)="aplicarBusqueda()">
+                <button class="btn btn-outline-secondary" type="button" (click)="aplicarBusqueda()">
                   <i class="bi bi-search"></i>
                 </button>
               </div>
             </div>
             <div class="col-md-6 text-end">
               <div class="btn-group">
-                <button type="button" class="btn btn-outline-primary" title="Filtrar" (click)="toggleFiltros()">
+                <button type="button" class="btn btn-outline-primary" title="Filtrar" (click)="mostrarOcultarFiltros()">
                   <i class="bi bi-filter"></i>
                 </button>
                 <button type="button" class="btn btn-outline-success" title="Exportar">
@@ -50,11 +50,9 @@
                 </div>
                 <div class="col-md-4">
                   <label for="filtroDeportes" class="form-label">Deporte</label>
-                  <select class="form-select" id="filtroDeportes" [(ngModel)]="filtros.deporte" (change)="aplicarFiltros()">
+                  <select class="form-select" id="filtroDeportes" [(ngModel)]="filtros.deporteId" (change)="aplicarFiltros()">
                     <option value="">Todos</option>
-                    <option value="Fútbol">Fútbol</option>
-                    <option value="Natación">Natación</option>
-                    <option value="Baloncesto">Baloncesto</option>
+                    <option *ngFor="let deporte of deportes" [value]="deporte.id">{{ deporte.nombre }}</option>
                   </select>
                 </div>
                 <div class="col-md-4">
@@ -67,7 +65,7 @@
                 </div>
               </div>
               <div class="d-flex justify-content-end mt-3">
-                <button class="btn btn-outline-secondary" (click)="limpiarFiltros()">
+                <button class="btn btn-outline-secondary" (click)="resetearFiltros()">
                   <i class="bi bi-x-circle me-1"></i>Limpiar filtros
                 </button>
               </div>
@@ -92,53 +90,18 @@
                   <td>{{ usuario.primerNombre }} {{ usuario.segundoNombre }} {{ usuario.primerApellido }} {{ usuario.segundoApellido }}</td>
                   <td>{{ usuario.email }}</td>
                   <td class="text-center">
-                    <div class="btn-group btn-group-sm">
-                      <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Documentos">
-                          <i class="bi bi-file-earmark-text"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                          <li *ngIf="usuario.documentos?.contrato">
-                            <a class="dropdown-item" href="javascript:void(0)" (click)="abrirDocumento(usuario.documentos.contrato)">
-                              <i class="bi bi-file-earmark-text me-2"></i>Contrato
-                            </a>
-                          </li>
-                          <li *ngIf="usuario.documentos?.consentimiento">
-                            <a class="dropdown-item" href="javascript:void(0)" (click)="abrirDocumento(usuario.documentos.consentimiento)">
-                              <i class="bi bi-file-earmark-check me-2"></i>Consentimiento
-                            </a>
-                          </li>
-                          <li *ngIf="usuario.documentos?.motivacion">
-                            <a class="dropdown-item" href="javascript:void(0)" (click)="abrirDocumento(usuario.documentos.motivacion)">
-                              <i class="bi bi-file-earmark-text me-2"></i>Motivación
-                            </a>
-                          </li>
-                          <li *ngIf="usuario.documentos?.evaluacion">
-                            <a class="dropdown-item" href="javascript:void(0)" (click)="abrirDocumento(usuario.documentos.evaluacion)">
-                              <i class="bi bi-file-earmark-medical me-2"></i>Evaluación
-                            </a>
-                          </li>
-                          <li *ngIf="usuario.documentos?.otros">
-                            <a class="dropdown-item" href="javascript:void(0)" (click)="abrirDocumento(usuario.documentos.otros)">
-                              <i class="bi bi-file-earmark me-2"></i>Otros
-                            </a>
-                          </li>
-                          <li *ngIf="!usuario.documentos?.contrato && !usuario.documentos?.consentimiento && !usuario.documentos?.motivacion && !usuario.documentos?.evaluacion && !usuario.documentos?.otros">
-                            <span class="dropdown-item text-muted">No hay documentos</span>
-                          </li>
-                        </ul>
-                      </div>
-                      <button class="btn btn-sm btn-outline-info" (click)="toggleDetallesUsuario(usuario)" title="Detalles">
+                    <div class="btn-group" role="group">
+                      <button class="btn btn-sm btn-primary me-1" (click)="mostrarModalEditarUsuario(usuario)" title="Editar usuario">
+                        <i class="bi bi-pencil-fill"></i>
+                      </button>
+                      <button class="btn btn-sm btn-danger me-1" (click)="confirmarDesactivarUsuario(usuario)" title="Desactivar usuario">
+                        <i class="bi bi-trash-fill"></i>
+                      </button>
+                      <button class="btn btn-sm btn-info me-1" (click)="toggleDetalleUsuario(usuario)" title="Ver detalles">
                         <i class="bi bi-info-circle"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-primary" (click)="editarRutina(usuario)" title="Editar Rutina">
+                      <button class="btn btn-sm btn-outline-primary" (click)="mostrarModalEditarRutina(usuario)" title="Editar Rutina">
                         <i class="bi bi-pencil-square"></i>
-                      </button>
-                      <button 
-                        class="btn btn-sm btn-outline-danger" 
-                        title="Eliminar usuario"
-                        (click)="confirmarEliminarUsuario(usuario)">
-                        <i class="bi bi-trash-fill"></i>
                       </button>
                     </div>
                   </td>
@@ -165,7 +128,7 @@
                           </div>
                         </div>
                         <div class="text-end mt-3">
-                          <button class="btn btn-sm btn-outline-secondary" (click)="toggleDetallesUsuario(usuario)" title="Cerrar">
+                          <button class="btn btn-sm btn-outline-secondary" (click)="toggleDetalleUsuario(usuario)" title="Cerrar">
                             <i class="bi bi-x-circle"></i>
                           </button>
                         </div>
@@ -175,11 +138,23 @@
                 </tr>
                 
                 <!-- Mensaje cuando no hay usuarios -->
-                <tr *ngIf="usuariosFiltrados.length === 0">
+                <tr *ngIf="usuariosFiltrados.length === 0 && !cargando && datosListos">
                   <td colspan="4" class="text-center py-4">
                     <div class="alert alert-info mb-0">
                       <i class="bi bi-info-circle me-2"></i>No se encontraron usuarios
                     </div>
+                  </td>
+                </tr>
+                
+                <!-- Indicador de carga -->
+                <tr *ngIf="cargando">
+                  <td colspan="4" class="text-center py-4">
+                    <div class="d-flex justify-content-center">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                      </div>
+                    </div>
+                    <p class="text-center mt-2 text-primary">Cargando usuarios...</p>
                   </td>
                 </tr>
               </tbody>
@@ -194,25 +169,25 @@
             <nav aria-label="Paginación de usuarios">
               <ul class="pagination pagination-sm mb-0">
                 <li class="page-item" [class.disabled]="paginaActual === 1">
-                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(1)" aria-label="Primera página">
+                  <a class="page-link" href="javascript:void(0)" (click)="irAPagina(1)" aria-label="Primera página">
                     <span aria-hidden="true">&laquo;</span>
                   </a>
                 </li>
                 <li class="page-item" [class.disabled]="paginaActual === 1">
-                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(paginaActual - 1)" aria-label="Página anterior">
+                  <a class="page-link" href="javascript:void(0)" (click)="irAPagina(paginaActual - 1)" aria-label="Página anterior">
                     <span aria-hidden="true">&lsaquo;</span>
                   </a>
                 </li>
-                <li class="page-item" *ngFor="let pagina of [].constructor(Math.ceil(usuariosFiltrados.length / resultadosPorPagina)); let i = index" [class.active]="paginaActual === i + 1">
-                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(i + 1)">{{ i + 1 }}</a>
+                <li class="page-item" *ngFor="let pagina of [].constructor(Math.ceil(usuariosFiltrados.length / resultadosPorPagina)); let i = index" [class.active]="i === paginaActual">
+                  <a class="page-link" href="javascript:void(0)" (click)="irAPagina(i)" >{{ i }}</a>
                 </li>
                 <li class="page-item" [class.disabled]="paginaActual >= Math.ceil(usuariosFiltrados.length / resultadosPorPagina)">
-                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(paginaActual + 1)" aria-label="Página siguiente">
+                  <a class="page-link" href="javascript:void(0)" (click)="irAPagina(paginaActual + 1)" aria-label="Página siguiente">
                     <span aria-hidden="true">&rsaquo;</span>
                   </a>
                 </li>
                 <li class="page-item" [class.disabled]="paginaActual >= Math.ceil(usuariosFiltrados.length / resultadosPorPagina)">
-                  <a class="page-link" href="javascript:void(0)" (click)="cambiarPagina(Math.ceil(usuariosFiltrados.length / resultadosPorPagina))" aria-label="Última página">
+                  <a class="page-link" href="javascript:void(0)" (click)="irAPagina(Math.ceil(usuariosFiltrados.length / resultadosPorPagina))" aria-label="Última página">
                     <span aria-hidden="true">&raquo;</span>
                   </a>
                 </li>
@@ -230,16 +205,16 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header bg-danger text-white">
-          <h5 class="modal-title" id="eliminarUsuarioModalLabel">Confirmar eliminación</h5>
+          <h5 class="modal-title" id="eliminarUsuarioModalLabel">Confirmar desactivación</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>¿Está seguro que desea eliminar al usuario <strong>{{ usuarioSeleccionado?.primerNombre }} {{ usuarioSeleccionado?.primerApellido }}</strong>?</p>
-          <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+          <p>¿Está seguro que desea desactivar al usuario <strong>{{ usuarioSeleccionado?.primerNombre }} {{ usuarioSeleccionado?.primerApellido }}</strong>?</p>
+          <p>El usuario será desactivado pero sus datos se conservarán en la base de datos.</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger" (click)="eliminarUsuario(usuarioSeleccionado)">Eliminar</button>
+          <button type="button" class="btn btn-danger" (click)="desactivarUsuario()">Desactivar</button>
         </div>
       </div>
     </div>
@@ -255,8 +230,8 @@
         </div>
         <div class="modal-body">
           <app-crear-rutinas 
-            [usuarioId]="usuarioSeleccionado?.id"
-            (cerrar)="cerrarModalCrearRutina()">
+            [usuarioId]="usuarioSeleccionado?.id || 0"
+            (cerrar)="ocultarModalCrearRutina()">
           </app-crear-rutinas>
         </div>
       </div>
@@ -276,7 +251,7 @@
             [usuarioId]="usuarioSeleccionado?.id || 0" 
             [rutinaId]="rutinaSeleccionadaId || 0" 
             [modoEdicion]="true"
-            (cerrar)="cerrarModalEditarRutina()">
+            (cerrar)="ocultarModalEditarRutina()">
           </app-ver-rutina>
         </div>
       </div>
@@ -296,7 +271,7 @@
             [usuarioId]="usuarioSeleccionado?.id || 0" 
             [rutinaId]="rutinaSeleccionadaId || 0" 
             [modoEdicion]="false"
-            (cerrar)="cerrarModalVerRutina()">
+            (cerrar)="ocultarModalVerRutina()">
           </app-ver-rutina>
         </div>
       </div>
@@ -304,16 +279,16 @@
   </div>
 
   <!-- Modal para historial de rutinas -->
-  <div *ngIf="mostrarModalHistorialRutinas" class="modal-overlay">
+  <div *ngIf="modalHistorialRutinasVisible" class="modal-overlay">
     <div class="modal-container">
       <div class="modal-header">
         <h5 class="modal-title">Historial de Rutinas de {{ usuarioSeleccionado?.primerNombre }} {{ usuarioSeleccionado?.primerApellido }}</h5>
-        <button type="button" class="btn-close" (click)="cerrarModalHistorialRutinas()"></button>
+        <button type="button" class="btn-close" (click)="ocultarModalHistorialRutinas()"></button>
       </div>
       <div class="modal-body">
         <app-historial-rutinas 
-          [usuarioId]="usuarioSeleccionado?.id"
-          (cerrar)="cerrarModalHistorialRutinas()">
+          [usuarioId]="usuarioSeleccionado?.id || 0"
+          (cerrar)="ocultarModalHistorialRutinas()">
         </app-historial-rutinas>
       </div>
     </div>
@@ -328,72 +303,107 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <form>
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label for="primerNombre" class="form-label">Primer Nombre *</label>
-                <input type="text" class="form-control" id="primerNombre" required>
-              </div>
-              <div class="col-md-6">
-                <label for="segundoNombre" class="form-label">Segundo Nombre</label>
-                <input type="text" class="form-control" id="segundoNombre">
-              </div>
+          <app-crear-usuarios 
+            (usuarioCreado)="actualizarListaUsuarios($event)" 
+            [modoEdicion]="false"
+            [deportes]="deportes"
+          ></app-crear-usuarios>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para editar usuario -->
+  <div class="modal fade" id="editarUsuarioModal" tabindex="-1" aria-labelledby="editarUsuarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editarUsuarioModalLabel">Editar Usuario</h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="ocultarModalEditarUsuario()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="primerNombre" class="form-label">Primer Nombre *</label>
+              <input type="text" class="form-control" id="primerNombre" [(ngModel)]="formularioEdicion.primerNombre" required>
             </div>
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label for="primerApellido" class="form-label">Primer Apellido *</label>
-                <input type="text" class="form-control" id="primerApellido" required>
-              </div>
-              <div class="col-md-6">
-                <label for="segundoApellido" class="form-label">Segundo Apellido</label>
-                <input type="text" class="form-control" id="segundoApellido">
-              </div>
+            <div class="col-md-6 mb-3">
+              <label for="segundoNombre" class="form-label">Segundo Nombre</label>
+              <input type="text" class="form-control" id="segundoNombre" [(ngModel)]="formularioEdicion.segundoNombre">
             </div>
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label for="telefono" class="form-label">Teléfono *</label>
-                <input type="tel" class="form-control" id="telefono" required>
-              </div>
-              <div class="col-md-6">
-                <label for="email" class="form-label">Email *</label>
-                <input type="email" class="form-control" id="email" required>
-              </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="primerApellido" class="form-label">Primer Apellido *</label>
+              <input type="text" class="form-control" id="primerApellido" [(ngModel)]="formularioEdicion.primerApellido" required>
             </div>
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label for="programa" class="form-label">Programa</label>
-                <select class="form-select" id="programa">
-                  <option value="">Seleccionar...</option>
-                  <option value="Acondicionamiento">Acondicionamiento</option>
-                  <option value="Hipertrofia">Hipertrofia</option>
-                  <option value="Recomposición">Recomposición</option>
-                  <option value="Pérdida de peso">Pérdida de peso</option>
-                </select>
-              </div>
-              <div class="col-md-6">
-                <label for="deporte" class="form-label">Deporte</label>
-                <input type="text" class="form-control" id="deporte">
-              </div>
+            <div class="col-md-6 mb-3">
+              <label for="segundoApellido" class="form-label">Segundo Apellido</label>
+              <input type="text" class="form-control" id="segundoApellido" [(ngModel)]="formularioEdicion.segundoApellido">
             </div>
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label for="posicion" class="form-label">Posición</label>
-                <input type="text" class="form-control" id="posicion">
-              </div>
-              <div class="col-md-6">
-                <label for="dob" class="form-label">Fecha de Nacimiento</label>
-                <input type="date" class="form-control" id="dob">
-              </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="telefono" class="form-label">Teléfono *</label>
+              <input type="tel" class="form-control" id="telefono" [(ngModel)]="formularioEdicion.telefono" required>
             </div>
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
+              <label for="email" class="form-label">Correo Electrónico *</label>
+              <input type="email" class="form-control" id="email" [(ngModel)]="formularioEdicion.email" required>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="programa" class="form-label">Programa *</label>
+              <select class="form-select" id="programa" [(ngModel)]="formularioEdicion.programa" required>
+                <option value="">Seleccionar programa</option>
+                <option value="Pérdida de peso">Pérdida de peso</option>
+                <option value="Ganancia muscular">Ganancia muscular</option>
+                <option value="Acondicionamiento">Acondicionamiento</option>
+                <option value="Rehabilitación">Rehabilitación</option>
+                <option value="Rendimiento deportivo">Rendimiento deportivo</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="dob" class="form-label">Fecha de Nacimiento (opcional)</label>
+              <input type="date" class="form-control" id="dob" [(ngModel)]="formularioEdicion.dob">
+              <small class="text-muted">Dejar en blanco si no se conoce</small>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="deporte" class="form-label">Deporte</label>
+              <select class="form-select" id="deporte" [(ngModel)]="formularioEdicion.deporteId" (change)="cargarPosicionesPorDeporte($event)">
+                <option value="">Seleccionar deporte</option>
+                <option *ngFor="let deporte of deportes" [value]="deporte.id">{{ deporte.nombre }}</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="posicion" class="form-label">Posición</label>
+              <select class="form-select" id="posicion" [(ngModel)]="formularioEdicion.posicionId">
+                <option value="">Seleccionar posición</option>
+                <option *ngFor="let posicion of posiciones" [value]="posicion.id">{{ posicion.nombre }}</option>
+              </select>
+              <small class="text-muted" *ngIf="posiciones.length === 0 && formularioEdicion.deporteId">Cargando posiciones...</small>
+              <small class="text-muted" *ngIf="posiciones.length === 0 && !formularioEdicion.deporteId">Seleccione un deporte primero</small>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12 mb-3">
               <label for="lesiones" class="form-label">Lesiones</label>
-              <textarea class="form-control" id="lesiones" rows="2"></textarea>
+              <textarea class="form-control" id="lesiones" rows="3" [(ngModel)]="formularioEdicion.lesiones"></textarea>
             </div>
-          </form>
+          </div>
+          <div class="alert alert-info">
+            <small>Los campos marcados con * son obligatorios</small>
+          </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-primary" (click)="agregarUsuario({})">Guardar</button>
+          <button type="button" class="btn btn-secondary" (click)="ocultarModalEditarUsuario()">Cancelar</button>
+          <button type="button" class="btn btn-primary" (click)="guardarUsuario()" [disabled]="cargando">
+            <span *ngIf="cargando" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            Guardar Cambios
+          </button>
         </div>
       </div>
     </div>

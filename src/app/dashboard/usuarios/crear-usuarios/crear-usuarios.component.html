@@ -134,24 +134,43 @@
   <div class="row mb-3">
     <div class="col-md-4">
       <label for="deporte" class="form-label">Deporte</label>
-      <input 
-        type="text" 
-        class="form-control" 
+      <select 
+        class="form-select" 
         id="deporte" 
         formControlName="deporte"
-        placeholder="Ej: Fútbol, Baloncesto, etc."
       >
+        <option value="">Seleccionar deporte</option>
+        <option *ngFor="let deporte of deportes" [value]="deporte.id">{{ deporte.nombre }}</option>
+      </select>
+      <div *ngIf="isLoading" class="form-text text-muted">
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Cargando deportes...
+      </div>
+      <div *ngIf="!isLoading && deportes.length === 0" class="form-text text-danger">
+        No se pudieron cargar los deportes. Por favor, inténtelo de nuevo.
+      </div>
     </div>
     
     <div class="col-md-4">
       <label for="posicion" class="form-label">Posición</label>
-      <input 
-        type="text" 
-        class="form-control" 
-        id="posicion" 
+      <select
+        class="form-select"
+        id="posicion"
         formControlName="posicion"
-        placeholder="Ej: Delantero, Base, etc."
       >
+        <option value="">Seleccionar posición</option>
+        <option *ngFor="let posicion of posiciones" [value]="posicion.id">{{ posicion.nombre }}</option>
+      </select>
+      <div *ngIf="isLoading && usuarioForm.get('deporte')?.value" class="form-text text-muted">
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Cargando posiciones...
+      </div>
+      <div *ngIf="!isLoading && usuarioForm.get('deporte')?.value && posiciones.length === 0" class="form-text text-danger">
+        No hay posiciones disponibles para este deporte.
+      </div>
+      <div *ngIf="!usuarioForm.get('deporte')?.value" class="form-text text-muted">
+        Seleccione un deporte primero
+      </div>
     </div>
     
     <div class="col-md-4">
@@ -180,7 +199,8 @@
             <input type="file" class="form-control" id="contrato" accept=".pdf" 
                   (change)="onDocumentoSeleccionado($event, 'contrato')">
             <button class="btn btn-outline-secondary" type="button" 
-                  [disabled]="!nombresArchivos.contrato" 
+                  [class.disabled]="!nombresArchivos.contrato" 
+                  [attr.aria-disabled]="!nombresArchivos.contrato"
                   (click)="documentos.contrato = null; nombresArchivos.contrato = ''">
               <i class="bi bi-x"></i>
             </button>
@@ -197,7 +217,8 @@
             <input type="file" class="form-control" id="consentimiento" accept=".pdf" 
                   (change)="onDocumentoSeleccionado($event, 'consentimiento')">
             <button class="btn btn-outline-secondary" type="button" 
-                  [disabled]="!nombresArchivos.consentimiento" 
+                  [class.disabled]="!nombresArchivos.consentimiento" 
+                  [attr.aria-disabled]="!nombresArchivos.consentimiento"
                   (click)="documentos.consentimiento = null; nombresArchivos.consentimiento = ''">
               <i class="bi bi-x"></i>
             </button>
@@ -214,7 +235,8 @@
             <input type="file" class="form-control" id="motivacion" accept=".pdf" 
                   (change)="onDocumentoSeleccionado($event, 'motivacion')">
             <button class="btn btn-outline-secondary" type="button" 
-                  [disabled]="!nombresArchivos.motivacion" 
+                  [class.disabled]="!nombresArchivos.motivacion" 
+                  [attr.aria-disabled]="!nombresArchivos.motivacion"
                   (click)="documentos.motivacion = null; nombresArchivos.motivacion = ''">
               <i class="bi bi-x"></i>
             </button>
@@ -231,7 +253,8 @@
             <input type="file" class="form-control" id="evaluacion" accept=".pdf" 
                   (change)="onDocumentoSeleccionado($event, 'evaluacion')">
             <button class="btn btn-outline-secondary" type="button" 
-                  [disabled]="!nombresArchivos.evaluacion" 
+                  [class.disabled]="!nombresArchivos.evaluacion" 
+                  [attr.aria-disabled]="!nombresArchivos.evaluacion"
                   (click)="documentos.evaluacion = null; nombresArchivos.evaluacion = ''">
               <i class="bi bi-x"></i>
             </button>
@@ -248,7 +271,8 @@
             <input type="file" class="form-control" id="otros" accept=".pdf" 
                   (change)="onDocumentoSeleccionado($event, 'otros')">
             <button class="btn btn-outline-secondary" type="button" 
-                  [disabled]="!nombresArchivos.otros" 
+                  [class.disabled]="!nombresArchivos.otros" 
+                  [attr.aria-disabled]="!nombresArchivos.otros"
                   (click)="documentos.otros = null; nombresArchivos.otros = ''">
               <i class="bi bi-x"></i>
             </button>
@@ -261,8 +285,31 @@
     </div>
   </div>
   
+  <!-- Mensaje de error -->
+  <div *ngIf="errorMessage && showError" class="alert alert-danger mt-3">
+    <div class="d-flex align-items-center">
+      <i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 1.2rem;"></i>
+      <div>
+        <strong>{{ errorMessage }}</strong>
+        <div *ngIf="errorMessage.includes('No se puede conectar al servidor')" class="mt-2">
+          <p class="mb-1">Para resolver este problema:</p>
+          <ol class="ps-3 mb-0">
+            <li>Verifica que el servidor API esté en ejecución en <code>http://localhost:3000</code></li>
+            <li>Comprueba que no haya errores en la consola del servidor</li>
+            <li>Asegúrate de que no hay restricciones de firewall que bloqueen la conexión</li>
+          </ol>
+          <p class="mt-2 mb-0"><small>Mientras tanto, puedes continuar usando otras funciones que no requieran conexión al servidor.</small></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Botones de acción -->
   <div class="d-flex justify-content-end mt-4">
     <button type="button" class="btn btn-secondary me-2" (click)="cerrarModal()">Cancelar</button>
-    <button type="submit" class="btn btn-primary">Guardar Usuario</button>
+    <button type="submit" class="btn btn-primary" [class.disabled]="isLoading" [attr.aria-disabled]="isLoading">
+      <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+      {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
+    </button>
   </div>
 </form>

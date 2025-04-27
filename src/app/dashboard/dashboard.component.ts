@@ -15,7 +15,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   // Estado de los menús (abierto/cerrado)
   menuState: { [key: string]: boolean } = {
     administracion: false,
-    parametrizacion: false
+    parametrizacion: false,
+    herramientas: false
   };
 
   // Estado de los submenús (abierto/cerrado)
@@ -58,6 +59,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     } else if (currentUrl.includes('/dashboard/rutinas')) {
       this.menuState['parametrizacion'] = true;
       this.submenuState['rutinas'] = true;
+    } else if (currentUrl.includes('/dashboard/db-test')) {
+      this.menuState['herramientas'] = true;
     }
   }
 

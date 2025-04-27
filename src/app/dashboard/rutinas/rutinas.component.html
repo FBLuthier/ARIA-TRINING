@@ -195,7 +195,7 @@
   *ngIf="mostrarCrearRutina"
   [usuarioId]="usuarioSeleccionado?.id || 0"
   [usuario]="usuarioSeleccionado"
-  [rutina]="rutinaSeleccionada"
+  [rutina]="rutinaSeleccionada!"
   [modoEdicion]="modoEdicion"
   (rutinaGuardada)="onRutinaGuardada($event)"
   (cancelar)="cerrarModalCrearRutina()">
