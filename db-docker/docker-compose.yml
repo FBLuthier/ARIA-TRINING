@@ -5,8 +5,8 @@ services:
     container_name: lucia_entrenadora_mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root_password      # Contraseña para el usuario root
-      MYSQL_DATABASE: lucia_entrenadora_db    # Nombre de la base de datos
+      MYSQL_ROOT_PASSWORD: root_password      # Contraseña para el usuario root de la BD
+      MYSQL_DATABASE: aria_training           # Nombre de la base de datos
       MYSQL_USER: lucia_user                  # Usuario para la base de datos
       MYSQL_PASSWORD: lucia_password          # Contraseña para el usuario
     ports:
