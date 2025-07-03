@@ -111,15 +111,24 @@ CREATE TABLE FASE_EJERCICIO_REL (
     FOREIGN KEY (fase_id) REFERENCES FASE(id)
 );
 
+-- Tabla CATEGORIA_EJERCICIO
+CREATE TABLE CATEGORIA_EJERCICIO (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    descripcion TEXT
+);
+
 -- Tabla EJERCICIO
 CREATE TABLE EJERCICIO (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
     descripcion TEXT,
-    categoria VARCHAR(100),
+    ejecucion TEXT,
+    categoria_id INT,
     nivel_dificultad VARCHAR(50),
     url_video VARCHAR(255),
-    url_imagen VARCHAR(255)
+    url_imagen VARCHAR(255),
+    FOREIGN KEY (categoria_id) REFERENCES CATEGORIA_EJERCICIO(id)
 );
 
 -- Tabla CLIENTE_LESION
